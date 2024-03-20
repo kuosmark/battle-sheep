@@ -14,14 +14,14 @@ def minimax(game_state, depth, is_max_player):
     if depth == 0:
         return heuristic.evaluate_game_state(game_state)
 
-    if is_max_player:
+    if is_max_player:  # Pelaaja tahtoo maksimoida arvon
         value = float('-Inf')  # Pelitilanteen heuristinen arvo
         next_moves = get_next_moves(game_state)
         for move in next_moves:
             value = max(value, minimax(move, depth - 1, False))
         return value
 
-    # is min player
+    # Pelaaja tahtoo minimoida arvon
     value = float('Inf')  # Pelitilanteen heuristinen arvo
     next_moves = get_next_moves(game_state)
     for move in next_moves:
