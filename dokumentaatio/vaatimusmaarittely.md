@@ -28,4 +28,8 @@ Harjoitustyön ydin on parhaan pelitilanteen laskevan minimax-algoritmin toteutu
 
 Kiinnostavia jatkokehitysaihioita olisi esimerkiksi pelilaudan muokkausmahdollisuus ja tekoälyvastustajan vaikeustason valinta (vaikeampi vastustaja kykenisi laskemaan siirtoja pidemmälle).
 
-## Lähdeviitteet
+## Lähteet
+
+Alpha–beta pruning. Wikipedia. Viitattu 20.3.2024. https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning
+
+Vasileios Megalooikonomou. 2003. CIS603 S03. Temple University Department of Computer & Information Sciences. https://cis.temple.edu/~vasilis/Courses/CIS603/Lectures/l7.html
