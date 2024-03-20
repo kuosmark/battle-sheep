@@ -10,7 +10,7 @@ def get_next_moves(game_state):
 # Muuttuja is_max_player kertoo, onko heuristisen funktion arvon maksimoijan vuoro.
 
 
-def minimax(game_state, depth, is_max_player):
+def minimax(game_state, depth: int, is_max_player: bool):
     if depth == 0:
         return heuristic.evaluate_game_state(game_state)
 
