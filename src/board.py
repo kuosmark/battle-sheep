@@ -1,9 +1,15 @@
-type Occupancy = tuple[int, int] | None  # Pelaajan tunniste ja lampaiden määrä
-type Cell = tuple[int, int, int]  # Ruudun koordinaatit
+# Ruudun koordinaatit
+type Cell = tuple[int, int, int]
+
+# Ruudun tilanne, arvoina ruudun vallanneen pelaajan tunniste ja lampaiden määrä
+# None, jos ruutu on tyhjä
+type Occupancy = tuple[int, int] | None
+
+# Pelilauta
 type Board = dict[Cell, Occupancy]
 
-# Pelilauta, jossa akselien Q, R ja S koordinaatit
-board: Board = {
+# Pelilaudan ruudut akselien Q, R ja S koordinaateilla ilmaistuna
+cells: list[Cell] = [
     (-4, 1, 3), (-4, 4, 0),
     (-3, 0, 3), (-3, 1, 2), (-3, 2, 1), (-3, 3, 0), (-3, 4, -1),
     (-2, 0, 2), (-2, 1, 1), (-2, 2, 0), (-2, 3, -1),
@@ -13,12 +19,16 @@ board: Board = {
     (2, -2, 0), (2, -1, -1), (2, 0, -2), (2, 1, -3),
     (3, -3, 0), (3, -2, -1), (3, -1, -2), (3, 0, -3), (3, 1, -4),
     (4, -3, -1), (4, 0, -4)
-}
+]
+
+# Alustetaan laudan jokaisen ruudun arvoksi None.
+board: Board = {cell: None for cell in cells}
+
+MAX_SHEEP_AMOUNT = 16
 
 
 def place_sheep(player_id: int, amount: int, position: Cell):
-    if (0 <= position[0] < WIDTH) and (0 <= position[1] < HEIGHT) and (0 < amount <= 16):
-        print(position)
+    if position in board and (0 < amount <= MAX_SHEEP_AMOUNT):
         occupancy: Occupancy = board.get(position, None)
         if occupancy is None:
             board[position] = (player_id, amount)
@@ -30,12 +40,25 @@ def place_sheep(player_id: int, amount: int, position: Cell):
 
 
 def display():
-    for row in range(HEIGHT):
-        row_output: list[str] = []
-        for col in range(WIDTH):
-            value = board.get((col, row), None)
-            if value is None:
-                row_output.append('0')
+    min_q = min(q for (q, r, s) in board.keys())
+    max_q = max(q for (q, r, s) in board.keys())
+    min_r = min(r for (q, r, s) in board.keys())
+    max_r = max(r for (q, r, s) in board.keys())
+
+    for q in range(min_q, max_q + 1):
+        # Lisätään välilyönnit heksagonaalisuuden simuloimiseksi
+        print(" " * abs(min_q - q), end="")
+        for r in range(min_r, max_r + 1):
+            s = - q - r
+            if (q, r, s) in board:
+                value = board.get((q, r, s), None)
+                if value is None:
+                    # Ellei lampaita ole, tulostetaan tyhjä ruutu
+                    print('# ', end="")
+                else:
+                    # Tulostetaan lampaiden lukumäärä
+                    print(f'{value[1]} ', end="")
             else:
-                row_output.append(str(value[1]))
-        print(' '.join(row_output))
+                # Ellei ruutua ole pelilaudalla, tulostetaan "tyhjää tilaa"
+                print('. ', end="")
+        print()

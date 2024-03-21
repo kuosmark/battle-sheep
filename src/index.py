@@ -11,10 +11,13 @@ while running:
 
     if command == 'lammas':
         print('Syötä koordinaatit ja lampaiden määrä.\n')
-        x = int(input('X-koordinaatti: '))
-        y = int(input('Y-koordinaatti: '))
+        q = int(input('Q-koordinaatti: '))
+        r = int(input('R-koordinaatti: '))
+        s = int(input('S-koordinaatti: '))
         sheep = int(input('Lampaiden määrä (1-16): '))
-        board.place_sheep(1, sheep, (x, y))
+
+        position = (q, r, s)
+        board.place_sheep(1, sheep, position)
 
     if command == 'tulosta':
         board.display()
