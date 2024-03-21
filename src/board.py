@@ -1,13 +1,19 @@
-WIDTH = 4  # x-akseli
-HEIGHT = 8  # y-akseli
-
 type Occupancy = tuple[int, int] | None  # Pelaajan tunniste ja lampaiden määrä
-type Cell = tuple[int, int]  # Ruudun koordinaatit
+type Cell = tuple[int, int, int]  # Ruudun koordinaatit
 type Board = dict[Cell, Occupancy]
 
-# Alustetaan laudan jokaisen ruudun arvoksi None.
-board: Board = {(x, y): None for x in range(WIDTH)
-                for y in range(HEIGHT)}
+# Pelilauta, jossa akselien Q, R ja S koordinaatit
+board: Board = {
+    (-4, 1, 3), (-4, 4, 0),
+    (-3, 0, 3), (-3, 1, 2), (-3, 2, 1), (-3, 3, 0), (-3, 4, -1),
+    (-2, 0, 2), (-2, 1, 1), (-2, 2, 0), (-2, 3, -1),
+    (-1, 0, 1), (-1, 1, 0), (-1, 2, -1),
+    (0, -1, 1), (0, 0, 0), (0, 1, -1), (0, 2, -2),
+    (1, -1, 0), (1, 0, -1), (1, 1, -2),
+    (2, -2, 0), (2, -1, -1), (2, 0, -2), (2, 1, -3),
+    (3, -3, 0), (3, -2, -1), (3, -1, -2), (3, 0, -3), (3, 1, -4),
+    (4, -3, -1), (4, 0, -4)
+}
 
 
 def place_sheep(player_id: int, amount: int, position: Cell):
