@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jan 23 14:07:18 2022
-
-@author: richa
-"""
 from __future__ import annotations
 
 import math
@@ -35,7 +29,6 @@ class HexagonTile:
 
     def compute_vertices(self) -> List[Tuple[float, float]]:
         """Returns a list of the hexagon's vertices as x, y tuples"""
-        # pylint: disable=invalid-name
         x, y = self.position
         half_radius = self.radius / 2
         minimal_radius = self.minimal_radius
@@ -78,7 +71,7 @@ class HexagonTile:
     @property
     def centre(self) -> Tuple[float, float]:
         """Centre of the hexagon"""
-        x, y = self.position  # pylint: disable=invalid-name
+        x, y = self.position
         return (x, y + self.radius)
 
     @property
@@ -91,14 +84,15 @@ class HexagonTile:
     def highlight_colour(self) -> Tuple[int, ...]:
         """Colour of the hexagon tile when rendering highlight"""
         offset = self.highlight_offset * self.highlight_tick
-        def brighten(x, y): return x + y if x + y < 255 else 255
+
+        def brighten(x, y):
+            return x + y if x + y < 255 else 255
         return tuple(brighten(x, offset) for x in self.colour)
 
 
 class FlatTopHexagonTile(HexagonTile):
     def compute_vertices(self) -> List[Tuple[float, float]]:
         """Returns a list of the hexagon's vertices as x, y tuples"""
-        # pylint: disable=invalid-name
         x, y = self.position
         half_radius = self.radius / 2
         minimal_radius = self.minimal_radius
@@ -114,5 +108,5 @@ class FlatTopHexagonTile(HexagonTile):
     @property
     def centre(self) -> Tuple[float, float]:
         """Centre of the hexagon"""
-        x, y = self.position  # pylint: disable=invalid-name
+        x, y = self.position
         return (x + self.radius / 2, y + self.minimal_radius)
