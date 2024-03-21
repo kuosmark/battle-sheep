@@ -27,9 +27,9 @@ board: Board = {cell: None for cell in cells}
 MAX_SHEEP_AMOUNT = 16
 
 
-def place_sheep(player_id: int, amount: int, position: Cell):
+def place_sheep(player_id: int, amount: int, position: Cell) -> None:
     if position in board and (0 < amount <= MAX_SHEEP_AMOUNT):
-        occupancy: Occupancy = board.get(position, None)
+        occupancy = board.get(position, None)
         if occupancy is None:
             board[position] = (player_id, amount)
             print('Onnistui!')
@@ -39,7 +39,7 @@ def place_sheep(player_id: int, amount: int, position: Cell):
         print('Virheelliset arvot, kokeile uudelleen!')
 
 
-def display():
+def display() -> None:
     min_q = min(q for (q, r, s) in board.keys())
     max_q = max(q for (q, r, s) in board.keys())
     min_r = min(r for (q, r, s) in board.keys())
