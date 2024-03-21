@@ -1,4 +1,4 @@
-import heuristic
+import game
 
 
 def get_next_moves(game_state):
@@ -12,7 +12,7 @@ def get_next_moves(game_state):
 
 def minimax(game_state, depth: int, is_max_player: bool):
     if depth == 0:
-        return heuristic.evaluate_game_state(game_state)
+        return game.evaluate_game_state(game_state)
 
     if is_max_player:  # Pelaaja tahtoo maksimoida arvon
         value = float('-Inf')  # Pelitilanteen heuristinen arvo

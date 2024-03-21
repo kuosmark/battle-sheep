@@ -12,7 +12,7 @@ Tarkoituksena on toteuttaa Battle Sheep -lautapeli sääntöjen mukaan toimiva p
 
 Ohjelma antaa pelaajan valita siirtonsa käyttöliittymään piirretyltä pelilaudalta, ja odottaa sitten tekoälyn siirtoa. Algoritmi laskee tekoälyn siirron, joka sitten näytetään pelaajalle. Peli päättyy, kuten lautepelikin, kun siirtoja ei ole enää mahdollista tehdä. Ohjelma ilmoittaa pelaajan ja tekoälyvastustajan pisteet sekä ilmaisee voittajan.
 
-Projektin laajuuden rajaamiseksi toteutetaan ainoastaan kaksinpelin yhden tekoälyvastustajan kanssa. Myöskään pelilaudan rakentamista ei toteuteta, vaan peli pelataan joka kerta samanlaisella, geneerisellä laudalla.
+Projektin laajuuden rajaamiseksi toteutetaan ainoastaan kaksinpeli yhden tekoälyvastustajan kanssa. Myöskään pelilaudan rakentamista ei toteuteta, vaan peli pelataan joka kerta samanlaisella, geneerisellä laudalla.
 
 ## Suunniteltu ratkaisu
 
