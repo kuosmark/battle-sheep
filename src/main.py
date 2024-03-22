@@ -1,106 +1,95 @@
 from typing import List
-from typing import Tuple
-
 import pygame
-from hexagon import FlatTopHexagonTile
-from hexagon import HexagonTile
+
+from pasture import Pasture
 
 
-PASTURE_COLOR = (163, 178, 3)  # vaalea ruoho
+DISPLAY_SIZE = (960, 540)
+FONT_SIZE = 48
+
 PASTURE_BORDER_COLOR = (90, 110, 2)  # tummempi ruoho
 HIGHLIGHTED_PASTURE_BORDER_COLOR = (0, 0, 0)  # musta
 BACKGROUND_COLOR = (255, 255, 255)  # valkoinen
 
 
-def create_hexagon(position, radius=50, flat_top=False) -> HexagonTile:
-    """Creates a hexagon tile at the specified position"""
-    class_ = FlatTopHexagonTile if flat_top else HexagonTile
-    return class_(radius, position, colour=PASTURE_COLOR)
+def init_pastures(x_length=8, y_length=4) -> List[Pasture]:
+    """Luodaan heksagonilaitumista pelilauta"""
+    initial_position = (50, 50)
+    leftmost_pasture = Pasture(initial_position)
+    pastures = [leftmost_pasture]
 
+    for y_axis in range(y_length):
+        if y_axis > 0:
+            position = leftmost_pasture.vertices[2]
+            leftmost_pasture = Pasture(position)
+            pastures.append(leftmost_pasture)
 
-def init_hexagons(num_x=8, num_y=4, flat_top=False) -> List[HexagonTile]:
-    """Creates a hexaogonal tile map of size num_x * num_y"""
-    leftmost_hexagon = create_hexagon(position=(50, 50), flat_top=flat_top)
-    hexagons = [leftmost_hexagon]
-    for x in range(num_y):
-        if x:
-            # alternate between bottom left and bottom right vertices of hexagon above
-            index = 2 if x % 2 == 1 or flat_top else 4
-            position = leftmost_hexagon.vertices[index]
-            leftmost_hexagon = create_hexagon(position, flat_top=flat_top)
-            hexagons.append(leftmost_hexagon)
-
-        # place hexagons to the left of leftmost hexagon, with equal y-values.
-        hexagon = leftmost_hexagon
-        for i in range(num_x):
-            x, y = hexagon.position  # type: ignore
-            if flat_top:
-                if i % 2 == 1:
-                    position = (x + hexagon.radius * 3 / 2,
-                                y - hexagon.minimal_radius)
-                else:
-                    position = (x + hexagon.radius * 3 / 2,
-                                y + hexagon.minimal_radius)
+        pasture = leftmost_pasture
+        for x_axis in range(x_length - 1):
+            (x, y) = pasture.position
+            # Piirretään joka toinen laidun ylä- ja joka toinen alaviistoon edellisestä
+            if x_axis % 2 == 1:
+                position = (x + pasture.radius * 3 / 2,
+                            y - pasture.minimal_radius)
             else:
-                position = (x + hexagon.minimal_radius * 2, y)
-            hexagon = create_hexagon(position, flat_top=flat_top)
-            hexagons.append(hexagon)
+                position = (x + pasture.radius * 3 / 2,
+                            y + pasture.minimal_radius)
+            pasture = Pasture(position)
+            pastures.append(pasture)
 
-    return hexagons
+    return pastures
 
 
-def render(screen, font, hexagons):
-    """Renders hexagons on the screen with visible borders"""
+def render(screen, font, pastures):
+    """Piirretään laitumet näytölle"""
     screen.fill(BACKGROUND_COLOR)
     border_width = 4
 
-    for hexagon in hexagons:
-        hexagon.render(screen, font)
-        # Renders the hexagon fill
-        # Now draw the border over the filled hexagon
+    for pasture in pastures:
+        pasture.render(screen, font)
+        # Piirretään reunat laitumen päälle
         pygame.draw.polygon(screen, PASTURE_BORDER_COLOR,
-                            hexagon.vertices, border_width)
+                            pasture.vertices, border_width)
 
-    mouse_pos = pygame.mouse.get_pos()
-    colliding_hexagons = [
-        hexagon for hexagon in hexagons if hexagon.collide_with_point(mouse_pos)
-    ]
-    for hexagon in colliding_hexagons:
-        for neighbour in hexagon.compute_neighbours(hexagons):
-            neighbour.render_highlight(
+    # Valaistaan hiiren osoittama laidun sekä sen viereiset laitumet
+    # TODO: Valaistaan jatkossa pelaajan sallitut siirrot
+    mouse_position = pygame.mouse.get_pos()
+    for pasture in pastures:
+        if pasture.collide_with_point(mouse_position):
+            for neighbour in pasture.compute_neighbours(pastures):
+                neighbour.render_highlight(
+                    screen, border_colour=HIGHLIGHTED_PASTURE_BORDER_COLOR)
+            pasture.render_highlight(
                 screen, border_colour=HIGHLIGHTED_PASTURE_BORDER_COLOR)
-        hexagon.render_highlight(
-            screen, border_colour=HIGHLIGHTED_PASTURE_BORDER_COLOR)
     pygame.display.flip()
-
-
-DISPLAY_SIZE = (960, 540)
 
 
 def main():
     pygame.init()
-    font = pygame.font.SysFont(None, 48)
-
+    font = pygame.font.SysFont(None, FONT_SIZE)
     screen = pygame.display.set_mode(DISPLAY_SIZE)
     clock = pygame.time.Clock()
-    hexagons = init_hexagons(flat_top=True)
-    terminated = False
-    while not terminated:
+
+    pastures = init_pastures()
+    running = True
+
+    # Pelin suoritus
+    while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                terminated = True
+                running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
-                for hexagon in hexagons:
+                for pasture in pastures:
                     # Etsitään valittu laidun
-                    if hexagon.collide_with_point(mouse_pos):
-                        # Lampaiden asetus
-                        hexagon.update_sheep(16)
+                    if pasture.collide_with_point(mouse_pos):
+                        # Asetetaan lampaita
+                        pasture.update_sheep(16)
 
-        for hexagon in hexagons:
-            hexagon.update()
+        for pasture in pastures:
+            pasture.update()
 
-        render(screen, font, hexagons)
+        render(screen, font, pastures)
         clock.tick(50)
     pygame.display.quit()
 

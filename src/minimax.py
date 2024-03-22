@@ -1,7 +1,7 @@
 import game
 
 
-def get_next_moves(game_state: game.Game):
+def get_next_moves(game_state):
     return []
 
 # Minimax-algoritmi
@@ -10,7 +10,7 @@ def get_next_moves(game_state: game.Game):
 # Muuttuja is_max_player kertoo, onko heuristisen funktion arvon maksimoijan vuoro.
 
 
-def minimax(game_state: game.Game, depth: int, is_max_player: bool) -> float:
+def minimax(game_state, depth: int, is_max_player: bool) -> float:
     if depth == 0:
         return game.evaluate_game_state(game_state)
 
