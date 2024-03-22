@@ -12,10 +12,9 @@ def create_hexagon(position, radius=50, flat_top=False) -> HexagonTile:
     return class_(radius, position, colour=(163, 178, 3))
 
 
-def init_hexagons(num_x=20, num_y=20, flat_top=False) -> List[HexagonTile]:
+def init_hexagons(num_x=8, num_y=4, flat_top=False) -> List[HexagonTile]:
     """Creates a hexaogonal tile map of size num_x * num_y"""
-    # pylint: disable=invalid-name
-    leftmost_hexagon = create_hexagon(position=(-50, -50), flat_top=flat_top)
+    leftmost_hexagon = create_hexagon(position=(50, 50), flat_top=flat_top)
     hexagons = [leftmost_hexagon]
     for x in range(num_y):
         if x:
@@ -68,10 +67,13 @@ def render(screen, hexagons):
     pygame.display.flip()
 
 
+DISPLAY_SIZE = (960, 540)
+
+
 def main():
     """Main function"""
     pygame.init()
-    screen = pygame.display.set_mode((960, 540))
+    screen = pygame.display.set_mode(DISPLAY_SIZE)
     clock = pygame.time.Clock()
     hexagons = init_hexagons(flat_top=True)
     terminated = False
