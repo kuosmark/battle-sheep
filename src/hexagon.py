@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 from typing import Tuple
+from uuid import uuid4
 
 import pygame
+
+TEXT_COLOR = (0, 0, 0)  # musta
 
 
 @dataclass
@@ -15,8 +18,10 @@ class HexagonTile:
     radius: float
     position: Tuple[float, float]
     colour: Tuple[int, ...]
+    sheep: int | None = None
     highlight_offset: int = 3
     max_highlight_ticks: int = 15
+    id: str = field(default_factory=lambda: uuid4().hex)
 
     def __post_init__(self):
         self.vertices = self.compute_vertices()
@@ -57,9 +62,13 @@ class HexagonTile:
         distance = math.dist(hexagon.centre, self.centre)
         return math.isclose(distance, 2 * self.minimal_radius, rel_tol=0.05)
 
-    def render(self, screen) -> None:
+    def render(self, screen, font) -> None:
         """Renders the hexagon on the screen"""
         pygame.draw.polygon(screen, self.highlight_colour, self.vertices)
+        if self.sheep is not None:
+            text_surface = font.render(str(self.sheep), True, TEXT_COLOR)
+            text_rect = text_surface.get_rect(center=self.centre)
+            screen.blit(text_surface, text_rect)
 
     def render_highlight(self, screen, border_colour) -> None:
         """Draws a border around the hexagon with the specified colour"""
@@ -67,6 +76,9 @@ class HexagonTile:
         # pygame.draw.polygon(screen, self.highlight_colour, self.vertices)
         pygame.draw.aalines(screen, border_colour,
                             closed=True, points=self.vertices)
+
+    def update_sheep(self, new_amount: int) -> None:
+        self.sheep = new_amount
 
     @property
     def centre(self) -> Tuple[float, float]:

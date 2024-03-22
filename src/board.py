@@ -1,15 +1,17 @@
+from typing import Dict, List, Tuple
+
 # Ruudun koordinaatit
-type Cell = tuple[int, int, int]
+type Cell = Tuple[int, int, int]
 
 # Ruudun tilanne, arvoina ruudun vallanneen pelaajan tunniste ja lampaiden määrä
 # None, jos ruutu on tyhjä
-type Occupancy = tuple[int, int] | None
+type Occupancy = Tuple[int, int] | None
 
 # Pelilauta
-type Board = dict[Cell, Occupancy]
+type Board = Dict[Cell, Occupancy]
 
 # Pelilaudan ruudut akselien Q, R ja S koordinaateilla ilmaistuna
-cells: list[Cell] = [
+cells: List[Cell] = [
     (-4, 1, 3), (-4, 4, 0),
     (-3, 0, 3), (-3, 1, 2), (-3, 2, 1), (-3, 3, 0), (-3, 4, -1),
     (-2, 0, 2), (-2, 1, 1), (-2, 2, 0), (-2, 3, -1),
