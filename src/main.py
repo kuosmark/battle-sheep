@@ -72,6 +72,8 @@ def main():
 
     pastures = init_pastures()
     running = True
+    players_turn = True
+    number_of_turn = 1
 
     # Pelin suoritus
     while running:
@@ -83,14 +85,20 @@ def main():
                 for pasture in pastures:
                     # Etsitään valittu laidun
                     if pasture.collide_with_point(mouse_pos):
-                        # Asetetaan lampaita
-                        pasture.update_sheep(16)
+                        if number_of_turn < 3:
+                            # Asetetaan lampaat
+                            owner = 0 if players_turn else 1   # Pelaaja - Tekoäly
+                            if not pasture.is_taken():
+                                pasture.update_sheep(
+                                    owner=owner, new_amount=16)
+                                players_turn = not players_turn
+                                number_of_turn += 1
+            for pasture in pastures:
+                pasture.update()
 
-        for pasture in pastures:
-            pasture.update()
+            render(screen, font, pastures)
+            clock.tick(50)
 
-        render(screen, font, pastures)
-        clock.tick(50)
     pygame.display.quit()
 
 
