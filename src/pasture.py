@@ -9,6 +9,8 @@ from uuid import uuid4
 import pygame
 
 PASTURE_COLOR = (163, 178, 3)  # vaalea ruoho
+RED_SHEEP_COLOR = (206, 51, 27)  # punainen
+BLUE_SHEEP_COLOR = (7, 83, 141)  # sininen
 TEXT_COLOR = (0, 0, 0)  # musta
 
 
@@ -16,6 +18,7 @@ TEXT_COLOR = (0, 0, 0)  # musta
 class Pasture:
     position: Tuple[float, float]
     sheep: int | None = None
+    owner: int | None = None
     colour: Tuple[int, ...] = PASTURE_COLOR
     radius: float = 50
     highlight_offset: int = 3
@@ -74,7 +77,15 @@ class Pasture:
         pygame.draw.aalines(screen, border_colour,
                             closed=True, points=self.vertices)
 
-    def update_sheep(self, new_amount: int) -> None:
+    def is_taken(self) -> bool:
+        return self.owner is not None
+
+    def update_sheep(self, owner: int, new_amount: int) -> None:
+        self.owner = owner
+        if owner == 0:
+            self.colour = RED_SHEEP_COLOR
+        elif owner == 1:
+            self.colour = BLUE_SHEEP_COLOR
         self.sheep = new_amount
 
     @property
