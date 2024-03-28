@@ -6,6 +6,7 @@ from pasture import Pasture
 
 DISPLAY_SIZE = (960, 540)
 FONT_SIZE = 48
+PASTURE_BORDER_WIDTH = 4
 
 PASTURE_BORDER_COLOR = (90, 110, 2)  # tummempi ruoho
 HIGHLIGHTED_PASTURE_BORDER_COLOR = (0, 0, 0)  # musta
@@ -40,28 +41,44 @@ def init_pastures(x_length=8, y_length=4) -> List[Pasture]:
     return pastures
 
 
-def render(screen, font, pastures):
+def render(screen, font, pastures, chosen_pasture, free_selection, player_in_turn):
     """Piirretään laitumet näytölle"""
     screen.fill(BACKGROUND_COLOR)
-    border_width = 4
 
     for pasture in pastures:
         pasture.render(screen, font)
         # Piirretään reunat laitumen päälle
         pygame.draw.polygon(screen, PASTURE_BORDER_COLOR,
-                            pasture.vertices, border_width)
+                            pasture.vertices, PASTURE_BORDER_WIDTH)
 
-    # Valaistaan hiiren osoittama laidun sekä sen viereiset laitumet
     # TODO: Valaistaan jatkossa pelaajan sallitut siirrot
     mouse_position = pygame.mouse.get_pos()
     for pasture in pastures:
         if pasture.collide_with_point(mouse_position):
-            for neighbour in pasture.compute_neighbours(pastures):
-                neighbour.render_highlight(
+            # for neighbour in pasture.compute_neighbours(pastures):
+            #     neighbour.render_highlight(
+            #         screen, border_colour=HIGHLIGHTED_PASTURE_BORDER_COLOR)
+            if free_selection and not pasture.is_taken():
+                pasture.render_highlight(
                     screen, border_colour=HIGHLIGHTED_PASTURE_BORDER_COLOR)
+            if not free_selection and pasture.is_taken() and pasture.owner == player_in_turn:
+                pasture.render_highlight(
+                    screen, border_colour=HIGHLIGHTED_PASTURE_BORDER_COLOR)
+        elif pasture is chosen_pasture:
             pasture.render_highlight(
                 screen, border_colour=HIGHLIGHTED_PASTURE_BORDER_COLOR)
+
     pygame.display.flip()
+
+
+def is_free_selection(turn):
+    return turn < 3
+
+
+def next_turn(player_in_turn):
+    if player_in_turn == 0:
+        return 1
+    return 0
 
 
 def main():
@@ -70,10 +87,12 @@ def main():
     screen = pygame.display.set_mode(DISPLAY_SIZE)
     clock = pygame.time.Clock()
 
-    pastures = init_pastures()
     running = True
-    players_turn = True
-    number_of_turn = 1
+
+    pastures = init_pastures()
+    player_in_turn = 0  # 0 = pelaaja, 1 = tekoäly
+    turn_number = 1
+    chosen_pasture = None
 
     # Pelin suoritus
     while running:
@@ -85,18 +104,21 @@ def main():
                 for pasture in pastures:
                     # Etsitään valittu laidun
                     if pasture.collide_with_point(mouse_pos):
-                        if number_of_turn < 3:
+                        if is_free_selection(turn_number):
                             # Asetetaan lampaat
-                            owner = 0 if players_turn else 1   # Pelaaja - Tekoäly
                             if not pasture.is_taken():
                                 pasture.update_sheep(
-                                    owner=owner, new_amount=16)
-                                players_turn = not players_turn
-                                number_of_turn += 1
+                                    owner=player_in_turn, new_amount=16)
+                                turn_number += 1
+                                player_in_turn = next_turn(player_in_turn)
+                        else:
+                            if pasture.is_taken() and pasture.owner == player_in_turn:
+                                chosen_pasture = pasture
             for pasture in pastures:
                 pasture.update()
 
-            render(screen, font, pastures)
+            render(screen, font, pastures, chosen_pasture,
+                   is_free_selection(turn_number), player_in_turn)
             clock.tick(50)
 
     pygame.display.quit()
