@@ -58,7 +58,7 @@ def render(screen, font, pastures, chosen_pasture, free_selection, player_in_tur
             # for neighbour in pasture.compute_neighbours(pastures):
             #     neighbour.render_highlight(
             #         screen, border_colour=HIGHLIGHTED_PASTURE_BORDER_COLOR)
-            if free_selection and not pasture.is_taken():
+            if free_selection and pasture.is_on_edge(pastures) and not pasture.is_taken():
                 pasture.render_highlight(
                     screen, border_colour=HIGHLIGHTED_PASTURE_BORDER_COLOR)
             if not free_selection and pasture.is_taken() and pasture.owner == player_in_turn:
@@ -106,7 +106,7 @@ def main():
                     if pasture.collide_with_point(mouse_pos):
                         if is_free_selection(turn_number):
                             # Asetetaan lampaat
-                            if not pasture.is_taken():
+                            if pasture.is_on_edge(pastures) and not pasture.is_taken():
                                 pasture.update_sheep(
                                     owner=player_in_turn, new_amount=16)
                                 turn_number += 1

@@ -52,6 +52,15 @@ class Pasture:
         """Returns pastures whose centres are two minimal radiuses away from self.centre"""
         return [pasture for pasture in pastures if self.is_neighbour(pasture)]
 
+    def number_of_neighbours(self, pastures: List[Pasture]) -> int:
+        """Palauttaa laitumen naapurilaitumien määrän"""
+        neighbours = self.compute_neighbours(pastures)
+        return len(neighbours)
+
+    def is_on_edge(self, pastures: List[Pasture]) -> bool:
+        """Kertoo, onko laidun pelilaudan reunalla (reunalaitumilla on alle 6 naapuria)"""
+        return self.number_of_neighbours(pastures) < 6
+
     def collide_with_point(self, point: Tuple[float, float]) -> bool:
         """Returns True if distance from centre to point is less than horizontal_length"""
         return math.dist(point, self.centre) < self.minimal_radius
