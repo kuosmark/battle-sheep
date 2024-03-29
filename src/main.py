@@ -119,7 +119,7 @@ def main():
                                 turn_number += 1
                                 player_in_turn = next_turn(player_in_turn)
                         else:
-                            if pasture.is_taken() and pasture.owner == player_in_turn:
+                            if pasture.is_taken() and pasture.owner == player_in_turn and pasture.sheep > 1:
                                 chosen_pasture = pasture
                                 targets = pasture.get_potential_targets(
                                     pastures)

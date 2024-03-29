@@ -160,7 +160,7 @@ class Pasture:
 
     def get_potential_targets(self, pastures: List[Pasture]) -> List[Pasture]:
         potential_targets: List[Pasture] = []
-        if self.is_surrounded(pastures):
+        if self.is_surrounded(pastures) or self.sheep is None or self.sheep < 2:
             return potential_targets
         directions = self.get_all_direction_vectors()
         for direction, vector in directions.items():
