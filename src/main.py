@@ -81,13 +81,7 @@ def next_turn(player_in_turn):
     return 0
 
 
-def highlight_targets(pasture: Pasture, pastures: List[Pasture]):
-    targets = pasture.get_potential_targets(pastures)
-    for target in targets:
-        target.targeted = True
-
-
-def remove_highlights(pastures: List[Pasture]):
+def remove_targets(pastures: List[Pasture]):
     for pasture in pastures:
         pasture.targeted = False
 
@@ -127,7 +121,16 @@ def main():
                         else:
                             if pasture.is_taken() and pasture.owner == player_in_turn:
                                 chosen_pasture = pasture
-                                highlight_targets(chosen_pasture, pastures)
+                                targets = pasture.get_potential_targets(
+                                    pastures)
+                                for target in targets:
+                                    target.targeted = True
+                            elif pasture.targeted and chosen_pasture is not None:
+                                remove_targets(pastures)
+                                chosen_pasture.move_sheep_to(pasture)
+                                chosen_pasture = None
+                                turn_number += 1
+                                player_in_turn = next_turn(player_in_turn)
             for pasture in pastures:
                 pasture.update()
 
