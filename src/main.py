@@ -86,6 +86,17 @@ def remove_targets(pastures: List[Pasture]):
         pasture.targeted = False
 
 
+def game_is_over(pastures, turn_number, player_in_turn) -> bool:
+    if turn_number < 4:
+        return False
+    potential_moves: int = 0
+    for pasture in pastures:
+        if pasture.owner == player_in_turn and pasture.sheep > 1:
+            moves = pasture.get_potential_targets(pastures)
+            potential_moves += len(moves)
+    return potential_moves == 0
+
+
 def main():
     pygame.init()
     font = pygame.font.SysFont(None, FONT_SIZE)
@@ -137,6 +148,19 @@ def main():
             render(screen, font, pastures, chosen_pasture,
                    is_free_selection(turn_number), player_in_turn)
             clock.tick(50)
+            if game_is_over(pastures, turn_number, player_in_turn):
+                score = 1000
+                screen.fill('black')  # Clear the screen
+                text = font.render(f'Peli on ohi! Pisteet: {
+                                   score}', True, 'white')
+                text_rect = text.get_rect(
+                    center=(DISPLAY_SIZE[0]/2, DISPLAY_SIZE[1]/2))
+                screen.blit(text, text_rect)
+                pygame.display.flip()  # Update the display
+                while True:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            running = False
 
     pygame.display.quit()
 
