@@ -124,34 +124,35 @@ class Pasture:
         return direction_vectors
 
     def move_sheep_to(self, target_pasture: Pasture) -> None:
-        """Moves sheep from this pasture to the target pasture."""
+        """Siirtää kaikki paitsi yhden lampaista annetulle laitumelle."""
         if self.sheep is not None and self.sheep > 1 and self.owner is not None and not target_pasture.is_taken():
-            # Siirretään kaikki paitsi yksi lampaista uudelle laitumelle
             target_pasture.update_sheep(self.owner, self.sheep-1)
             # Jätetään yksi lammas nykyiselle laitumelle
             self.update_sheep(self.owner, 1)
 
     def get_pasture_at_direction_and_distance(self, vector, current_distance, pastures) -> Pasture | None:
-        """Finds the pasture at a given direction and distance from the current pasture in a flat-topped hex grid."""
+        """Etsii laitumen annetusta suunnasta, annetun etäisyyden päästä."""
 
         target_position = (self.centre[0] + vector[0] * current_distance,
                            self.centre[1] + vector[1] * current_distance)
-        print('trying to find pasture in position' + str(target_position))
+
         for pasture in pastures:
-            if math.isclose(pasture.centre[0], target_position[0], rel_tol=0.05) and math.isclose(pasture.centre[1], target_position[1], rel_tol=0.05):
-                print('PASTURE FOUND IN' + str(target_position))
+            if math.isclose(pasture.centre[0], target_position[0], rel_tol=0.05) and math.isclose(
+                    pasture.centre[1], target_position[1], rel_tol=0.05):
                 return pasture
         return None
 
     def get_target_pasture(self, vector: Tuple[int, int], pastures: List[Pasture]) -> Pasture | None:
-        """Finds the farthest unoccupied pasture in the given direction."""
+        """Etsii viimeisen vapaan laitumen annetusta suunnasta."""
         current_distance = 1
         while True:
             potential_target = self.get_pasture_at_direction_and_distance(
                 vector, current_distance, pastures)
             if potential_target is None or potential_target.is_taken():
-                # Return the last valid pasture if we hit the board edge or an occupied pasture
+                # Palauttaa edellisen laitumen, mikäli laidun on vallattu
+                # tai pelilaudan reuna tullut vastaan.
                 if current_distance < 2:
+                    # Ei palauteta lähtöruutua, mikäli ei päästy yhtä laidunta kauemmaksi.
                     return None
                 last_valid_pasture = self.get_pasture_at_direction_and_distance(
                     vector, current_distance - 1, pastures)
@@ -159,17 +160,14 @@ class Pasture:
             current_distance += 1
 
     def get_potential_targets(self, pastures: List[Pasture]) -> List[Pasture]:
-        potential_targets: List[Pasture] = []
         if self.is_surrounded(pastures) or self.sheep is None or self.sheep < 2:
-            return potential_targets
+            return []
+        potential_targets: List[Pasture] = []
         directions = self.get_all_direction_vectors()
-        for direction, vector in directions.items():
-            print('..........now looking at' + str(direction))
+        for vector in directions.values():
             target_pasture = self.get_target_pasture(vector, pastures)
             if target_pasture is not None:
-                print('Lisätään laidun' + str(target_pasture.centre))
                 potential_targets.append(target_pasture)
-        print('Löydetyt laitumet olivat' + str(potential_targets))
         return potential_targets
 
     @property
