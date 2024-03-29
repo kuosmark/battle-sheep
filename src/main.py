@@ -11,6 +11,7 @@ PASTURE_BORDER_WIDTH = 4
 PASTURE_BORDER_COLOR = (90, 110, 2)  # tummempi ruoho
 HIGHLIGHTED_PASTURE_BORDER_COLOR = (0, 0, 0)  # musta
 BACKGROUND_COLOR = (255, 255, 255)  # valkoinen
+BLACK = (0, 0, 0)
 
 
 def init_pastures(x_length=8, y_length=4) -> List[Pasture]:
@@ -44,6 +45,15 @@ def init_pastures(x_length=8, y_length=4) -> List[Pasture]:
 def render(screen, font, pastures, chosen_pasture, free_selection, player_in_turn):
     """Piirretään laitumet näytölle"""
     screen.fill(BACKGROUND_COLOR)
+
+    margin = 50
+    turn_text = font.render(
+        f"{'Pelaajan' if player_in_turn == 0 else 'Tekoälyn'} vuoro", True, BLACK)
+
+    text_rect = turn_text.get_rect()
+    text_rect.topright = (screen.get_rect().right - margin, margin)
+    # Blit the text onto the screen at the specified position
+    screen.blit(turn_text, text_rect)
 
     for pasture in pastures:
         pasture.render(screen, font)
