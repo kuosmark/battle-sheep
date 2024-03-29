@@ -64,7 +64,7 @@ def render(screen, font, pastures, chosen_pasture, free_selection, player_in_tur
             if not free_selection and pasture.is_taken() and pasture.owner == player_in_turn:
                 pasture.render_highlight(
                     screen, border_colour=HIGHLIGHTED_PASTURE_BORDER_COLOR)
-        elif pasture is chosen_pasture:
+        elif pasture is chosen_pasture or pasture.targeted:
             pasture.render_highlight(
                 screen, border_colour=HIGHLIGHTED_PASTURE_BORDER_COLOR)
 
@@ -79,6 +79,17 @@ def next_turn(player_in_turn):
     if player_in_turn == 0:
         return 1
     return 0
+
+
+def highlight_targets(pasture: Pasture, pastures: List[Pasture]):
+    targets = pasture.get_potential_targets(pastures)
+    for target in targets:
+        target.targeted = True
+
+
+def remove_highlights(pastures: List[Pasture]):
+    for pasture in pastures:
+        pasture.targeted = False
 
 
 def main():
@@ -104,6 +115,8 @@ def main():
                 for pasture in pastures:
                     # Etsitään valittu laidun
                     if pasture.collide_with_point(mouse_pos):
+                        print('The centre of this pasture is at' +
+                              str(pasture.centre))
                         if is_free_selection(turn_number):
                             # Asetetaan lampaat
                             if pasture.is_on_edge(pastures) and not pasture.is_taken():
@@ -114,6 +127,7 @@ def main():
                         else:
                             if pasture.is_taken() and pasture.owner == player_in_turn:
                                 chosen_pasture = pasture
+                                highlight_targets(chosen_pasture, pastures)
             for pasture in pastures:
                 pasture.update()
 

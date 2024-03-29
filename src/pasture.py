@@ -19,6 +19,7 @@ class Pasture:
     position: Tuple[float, float]
     sheep: int | None = None
     owner: int | None = None
+    targeted: bool = False
     colour: Tuple[int, ...] = PASTURE_COLOR
     radius: float = 50
     highlight_offset: int = 3
@@ -72,6 +73,19 @@ class Pasture:
         distance = math.dist(pasture.centre, self.centre)
         return math.isclose(distance, 2 * self.minimal_radius, rel_tol=0.05)
 
+    def has_free_neighbour(self, pasture: Pasture) -> bool:
+        """Kertoo, onko laidun naapuri ja vapaana"""
+        return self.is_neighbour(pasture) and not pasture.is_taken()
+
+    def get_free_neighbours(self, pastures: List[Pasture]) -> List[Pasture]:
+        """Palauttaa vapaat naapurilaitumet"""
+        return list(filter(self.has_free_neighbour, pastures))
+
+    def is_surrounded(self, pastures: List[Pasture]) -> bool:
+        """Palauttaa, onko laidun ympäröity vallatuilla laitumilla"""
+        free_neighbours = self.get_free_neighbours(pastures)
+        return len(free_neighbours) == 0
+
     def render(self, screen, font) -> None:
         """Piirtää laitumen näytölle"""
         pygame.draw.polygon(screen, self.highlight_colour, self.vertices)
@@ -96,6 +110,67 @@ class Pasture:
         elif owner == 1:
             self.colour = BLUE_SHEEP_COLOR
         self.sheep = new_amount
+
+    def get_all_direction_vectors(self):
+        """Returns all direction vectors for a flat-topped hex grid."""
+        direction_vectors = {
+            "N": (0, -2 * self.minimal_radius),
+            "S": (0, 2 * self.minimal_radius),
+            "NE": (math.sqrt(3) * self.minimal_radius, -(self.minimal_radius)),
+            "NW": (-(math.sqrt(3) * self.minimal_radius), -(self.minimal_radius)),
+            "SE": (math.sqrt(3) * self.minimal_radius, self.minimal_radius),
+            "SW": (-(math.sqrt(3) * self.minimal_radius), self.minimal_radius),
+        }
+        return direction_vectors
+
+    def move_sheep_to(self, target_pasture: Pasture) -> None:
+        """Moves sheep from this pasture to the target pasture."""
+        if self.sheep is not None and self.sheep > 1 and self.owner is not None and not target_pasture.is_taken():
+            # Siirretään kaikki paitsi yksi lampaista uudelle laitumelle
+            target_pasture.update_sheep(self.owner, self.sheep-1)
+            # Jätetään yksi lammas nykyiselle laitumelle
+            self.update_sheep(self.owner, 1)
+
+    def get_pasture_at_direction_and_distance(self, vector, current_distance, pastures) -> Pasture | None:
+        """Finds the pasture at a given direction and distance from the current pasture in a flat-topped hex grid."""
+
+        target_position = (self.centre[0] + vector[0] * current_distance,
+                           self.centre[1] + vector[1] * current_distance)
+        print('trying to find pasture in position' + str(target_position))
+        for pasture in pastures:
+            if math.isclose(pasture.centre[0], target_position[0], rel_tol=0.05) and math.isclose(pasture.centre[1], target_position[1], rel_tol=0.05):
+                print('PASTURE FOUND IN' + str(target_position))
+                return pasture
+        return None
+
+    def get_target_pasture(self, vector: Tuple[int, int], pastures: List[Pasture]) -> Pasture | None:
+        """Finds the farthest unoccupied pasture in the given direction."""
+        current_distance = 1
+        while True:
+            potential_target = self.get_pasture_at_direction_and_distance(
+                vector, current_distance, pastures)
+            if potential_target is None or potential_target.is_taken():
+                # Return the last valid pasture if we hit the board edge or an occupied pasture
+                if current_distance < 2:
+                    return None
+                last_valid_pasture = self.get_pasture_at_direction_and_distance(
+                    vector, current_distance - 1, pastures)
+                return last_valid_pasture
+            current_distance += 1
+
+    def get_potential_targets(self, pastures: List[Pasture]) -> List[Pasture]:
+        potential_targets: List[Pasture] = []
+        if self.is_surrounded(pastures):
+            return potential_targets
+        directions = self.get_all_direction_vectors()
+        for direction, vector in directions.items():
+            print('..........now looking at' + str(direction))
+            target_pasture = self.get_target_pasture(vector, pastures)
+            if target_pasture is not None:
+                print('Lisätään laidun' + str(target_pasture.centre))
+                potential_targets.append(target_pasture)
+        print('Löydetyt laitumet olivat' + str(potential_targets))
+        return potential_targets
 
     @property
     def centre(self) -> Tuple[float, float]:
