@@ -12,12 +12,14 @@ PASTURE_COLOR = (163, 178, 3)  # vaalea ruoho
 RED_SHEEP_COLOR = (206, 51, 27)  # punainen
 BLUE_SHEEP_COLOR = (7, 83, 141)  # sininen
 TEXT_COLOR = (0, 0, 0)  # musta
+WHITE = (255, 255, 255)  # valkoinen
 
 
 @dataclass
 class Pasture:
     position: Tuple[float, float]
     sheep: int | None = None
+    planned_sheep: int | None = None
     owner: int | None = None
     targeted: bool = False
     colour: Tuple[int, ...] = PASTURE_COLOR
@@ -89,7 +91,12 @@ class Pasture:
     def render(self, screen, font) -> None:
         """Piirtää laitumen näytölle"""
         pygame.draw.polygon(screen, self.highlight_colour, self.vertices)
-        if self.sheep is not None:
+        if self.planned_sheep is not None:
+            text_surface = font.render(
+                str(self.planned_sheep), True, WHITE)
+            text_rect = text_surface.get_rect(center=self.centre)
+            screen.blit(text_surface, text_rect)
+        elif self.sheep is not None:
             text_surface = font.render(str(self.sheep), True, TEXT_COLOR)
             text_rect = text_surface.get_rect(center=self.centre)
             screen.blit(text_surface, text_rect)
@@ -125,10 +132,12 @@ class Pasture:
 
     def move_sheep_to(self, target_pasture: Pasture) -> None:
         """Siirtää kaikki paitsi yhden lampaista annetulle laitumelle."""
-        if self.sheep is not None and self.sheep > 1 and self.owner is not None and not target_pasture.is_taken():
-            target_pasture.update_sheep(self.owner, self.sheep-1)
-            # Jätetään yksi lammas nykyiselle laitumelle
-            self.update_sheep(self.owner, 1)
+        if self.planned_sheep is not None and self.planned_sheep > 1 and target_pasture.planned_sheep is not None and target_pasture.planned_sheep > 1 and self.owner is not None and not target_pasture.is_taken():
+            target_pasture.update_sheep(
+                self.owner, target_pasture.planned_sheep)
+            self.update_sheep(self.owner, self.planned_sheep)
+            self.planned_sheep = None
+            target_pasture.planned_sheep = None
 
     def get_pasture_at_direction_and_distance(self, vector, current_distance, pastures) -> Pasture | None:
         """Etsii laitumen annetusta suunnasta, annetun etäisyyden päästä."""

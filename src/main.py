@@ -7,6 +7,9 @@ from pasture import Pasture
 DISPLAY_SIZE = (960, 540)
 FONT_SIZE = 48
 PASTURE_BORDER_WIDTH = 4
+LEFT_MOUSE_BUTTON = 1
+MOUSE_WHEEL_SCROLL_UP = 4
+MOUSE_WHEEL_SCROLL_DOWN = 5
 
 PASTURE_BORDER_COLOR = (90, 110, 2)  # tummempi ruoho
 HIGHLIGHTED_PASTURE_BORDER_COLOR = (0, 0, 0)  # musta
@@ -76,7 +79,7 @@ def render(screen, font, pastures: List[Pasture], chosen_pasture: Pasture, turn_
                 highlight(pasture)
             if not is_sheep_placement(turn_number) and pasture.is_taken() and pasture.owner == player_in_turn:
                 highlight(pasture)
-        elif pasture is chosen_pasture or pasture.targeted:
+        elif pasture is chosen_pasture or pasture.targeted or pasture.planned_sheep is not None:
             highlight(pasture)
 
     pygame.display.flip()
@@ -126,13 +129,14 @@ def main():
     player_in_turn = HUMAN_PLAYER
     turn_number = 1
     chosen_pasture = None
+    target_pasture = None
 
     # Pelin suoritus
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT_MOUSE_BUTTON:
                 mouse_pos = pygame.mouse.get_pos()
                 for pasture in pastures:
                     # Etsitään valittu laidun
@@ -142,19 +146,34 @@ def main():
                                 place_sheep(player_in_turn, pasture, pastures)
                                 turn_number += 1
                                 player_in_turn = next_turn(player_in_turn)
-                        else:
-                            if pasture.is_taken() and pasture.owner == player_in_turn and pasture.sheep > 1:
+                        else:  # Aloituslampaat on jo asetettu
+                            if pasture is target_pasture:
+                                chosen_pasture.move_sheep_to(pasture)
+                                remove_targets(pastures)
+                                chosen_pasture = None
+                                target_pasture = None
+                                turn_number += 1
+                                player_in_turn = next_turn(player_in_turn)
+                            elif pasture.is_taken() and pasture.owner == player_in_turn and pasture.sheep > 1:
+                                # Valitaan lähtöruutu
                                 chosen_pasture = pasture
                                 targets = pasture.get_potential_targets(
                                     pastures)
                                 for target in targets:
                                     target.targeted = True
                             elif pasture.targeted and chosen_pasture is not None:
-                                remove_targets(pastures)
-                                chosen_pasture.move_sheep_to(pasture)
-                                chosen_pasture = None
-                                turn_number += 1
-                                player_in_turn = next_turn(player_in_turn)
+                                # Jos lähtöruutu valittu, valitaan kohderuutu
+                                target_pasture = pasture
+                                chosen_pasture.planned_sheep = chosen_pasture.sheep - 1
+                                pasture.planned_sheep = 1
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_UP and target_pasture is not None and chosen_pasture is not None:
+                if chosen_pasture.planned_sheep > 1:
+                    chosen_pasture.planned_sheep -= 1
+                    target_pasture.planned_sheep += 1
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_DOWN and target_pasture is not None and chosen_pasture is not None:
+                if target_pasture.planned_sheep > 1:
+                    chosen_pasture.planned_sheep += 1
+                    target_pasture.planned_sheep -= 1
             for pasture in pastures:
                 pasture.update()
 
