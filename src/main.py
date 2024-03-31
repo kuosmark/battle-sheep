@@ -147,33 +147,35 @@ def main():
                                 turn_number += 1
                                 player_in_turn = next_turn(player_in_turn)
                         else:  # Aloituslampaat on jo asetettu
-                            if pasture is target_pasture:
-                                chosen_pasture.move_sheep_to(pasture)
-                                remove_targets(pastures)
-                                chosen_pasture = None
-                                target_pasture = None
-                                turn_number += 1
-                                player_in_turn = next_turn(player_in_turn)
-                            elif pasture.is_taken() and pasture.owner == player_in_turn and pasture.sheep > 1:
+                            if pasture.is_taken() and pasture.owner == player_in_turn and pasture.sheep > 1:
                                 # Valitaan lähtöruutu
                                 chosen_pasture = pasture
                                 targets = pasture.get_potential_targets(
                                     pastures)
                                 for target in targets:
                                     target.targeted = True
-                            elif pasture.targeted and chosen_pasture is not None:
+                            elif pasture.targeted and chosen_pasture is not None and pasture is not chosen_pasture:
                                 # Jos lähtöruutu valittu, valitaan kohderuutu
                                 target_pasture = pasture
-                                chosen_pasture.planned_sheep = chosen_pasture.sheep - 1
                                 pasture.planned_sheep = 1
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_UP and target_pasture is not None and chosen_pasture is not None:
+                                chosen_pasture.planned_sheep = chosen_pasture.sheep - 1
+            elif ((event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_UP) or (event.type == pygame.KEYDOWN and event.key == pygame.K_UP)) and target_pasture is not None and chosen_pasture is not None:
                 if chosen_pasture.planned_sheep > 1:
-                    chosen_pasture.planned_sheep -= 1
-                    target_pasture.planned_sheep += 1
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_DOWN and target_pasture is not None and chosen_pasture is not None:
+                    chosen_pasture.deduct_a_sheep()
+                    target_pasture.add_a_sheep()
+            elif ((event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_DOWN) or (event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN)) and target_pasture is not None and chosen_pasture is not None:
                 if target_pasture.planned_sheep > 1:
-                    chosen_pasture.planned_sheep += 1
-                    target_pasture.planned_sheep -= 1
+                    target_pasture.deduct_a_sheep()
+                    chosen_pasture.add_a_sheep()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                if target_pasture is not None and target_pasture.planned_sheep > 0 and chosen_pasture is not None and chosen_pasture.planned_sheep > 0:
+                    chosen_pasture.move_sheep_to(target_pasture)
+                    remove_targets(pastures)
+                    chosen_pasture = None
+                    target_pasture = None
+                    turn_number += 1
+                    player_in_turn = next_turn(player_in_turn)
+
             for pasture in pastures:
                 pasture.update()
 

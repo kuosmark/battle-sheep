@@ -110,6 +110,12 @@ class Pasture:
     def is_taken(self) -> bool:
         return self.owner is not None
 
+    def add_a_sheep(self):
+        self.planned_sheep = self.planned_sheep + 1
+
+    def deduct_a_sheep(self):
+        self.planned_sheep = self.planned_sheep - 1
+
     def update_sheep(self, owner: int, new_amount: int) -> None:
         self.owner = owner
         if owner == 0:
@@ -132,7 +138,7 @@ class Pasture:
 
     def move_sheep_to(self, target_pasture: Pasture) -> None:
         """Siirtää kaikki paitsi yhden lampaista annetulle laitumelle."""
-        if self.planned_sheep is not None and self.planned_sheep > 1 and target_pasture.planned_sheep is not None and target_pasture.planned_sheep > 1 and self.owner is not None and not target_pasture.is_taken():
+        if self.owner is not None and target_pasture.planned_sheep is not None and self.planned_sheep is not None:
             target_pasture.update_sheep(
                 self.owner, target_pasture.planned_sheep)
             self.update_sheep(self.owner, self.planned_sheep)
