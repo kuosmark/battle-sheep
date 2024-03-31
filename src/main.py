@@ -1,6 +1,7 @@
 from typing import List
 import pygame
 
+from game import Game
 from pasture import Pasture
 
 
@@ -18,7 +19,6 @@ BLACK = (0, 0, 0)
 
 HUMAN_PLAYER = 0
 COMPUTER_PLAYER = 1
-INITIAL_SHEEP = 16
 
 
 def init_pastures(x_length=8, y_length=4) -> List[Pasture]:
@@ -49,7 +49,7 @@ def init_pastures(x_length=8, y_length=4) -> List[Pasture]:
     return pastures
 
 
-def render(screen, font, pastures: List[Pasture], chosen_pasture: Pasture, turn_number: int, player_in_turn: int):
+def render(screen, font, game: Game):
     """Piirretään laitumet näytölle"""
 
     def highlight(pasture: Pasture) -> None:
@@ -60,76 +60,40 @@ def render(screen, font, pastures: List[Pasture], chosen_pasture: Pasture, turn_
 
     margin = 50
     turn_text = font.render(
-        f"{'Pelaajan' if player_in_turn == HUMAN_PLAYER else 'Tekoälyn'} vuoro", True, BLACK)
+        f"{'Pelaajan' if game.is_humans_turn else 'Tekoälyn'} vuoro", True, BLACK)
 
     text_rect = turn_text.get_rect()
     text_rect.topright = (screen.get_rect().right - margin, margin)
     screen.blit(turn_text, text_rect)
 
-    for pasture in pastures:
+    for pasture in game.pastures:
         pasture.render(screen, font)
         # Piirretään reunat laitumen päälle
         pygame.draw.polygon(screen, PASTURE_BORDER_COLOR,
                             pasture.vertices, PASTURE_BORDER_WIDTH)
 
     mouse_position = pygame.mouse.get_pos()
-    for pasture in pastures:
-        if pasture.collide_with_point(mouse_position):
-            if is_sheep_placement(turn_number) and not pasture.is_taken() and pasture.is_on_edge(pastures):
-                highlight(pasture)
-            if not is_sheep_placement(turn_number) and pasture.is_taken() and pasture.owner == player_in_turn:
-                highlight(pasture)
-        elif pasture is chosen_pasture or pasture.targeted or pasture.planned_sheep is not None:
+    for pasture in game.pastures:
+        if pasture is game.chosen_pasture or pasture.targeted or pasture.planned_sheep is not None:
             highlight(pasture)
+        elif pasture.collide_with_point(mouse_position):
+            if game.is_in_initial_placement() and not pasture.is_taken() and pasture.is_on_edge(game.pastures):
+                highlight(pasture)
+            if not game.is_in_initial_placement() and pasture.is_taken() and game.is_controlled_by_player_in_turn(pasture):
+                highlight(pasture)
 
     pygame.display.flip()
 
 
-def is_sheep_placement(turn):
-    return turn < 3
-
-
-def next_turn(player_in_turn):
-    if player_in_turn == HUMAN_PLAYER:
-        return COMPUTER_PLAYER
-    return HUMAN_PLAYER
-
-
-def remove_targets(pastures: List[Pasture]):
-    for pasture in pastures:
-        pasture.targeted = False
-
-
-def place_sheep(player, pasture: Pasture, pastures: List[Pasture]) -> None:
-    """Asetetaan lampaat laitumelle, mikäli säännöt sallivat"""
-    if pasture.is_on_edge(pastures) and not pasture.is_taken():
-        pasture.update_sheep(owner=player, new_amount=INITIAL_SHEEP)
-
-
-def game_is_over(pastures, turn_number, player_in_turn) -> bool:
-    if is_sheep_placement(turn_number):
-        return False
-    for pasture in pastures:
-        if pasture.owner == player_in_turn and pasture.sheep > 1:
-            potential_moves = pasture.get_potential_targets(pastures)
-            if len(potential_moves) > 0:
-                return False
-    return True
-
-
 def main():
     pygame.init()
-    font = pygame.font.SysFont(None, FONT_SIZE)
     screen = pygame.display.set_mode(DISPLAY_SIZE)
+    font = pygame.font.SysFont(None, FONT_SIZE)
     clock = pygame.time.Clock()
 
     running = True
 
-    pastures = init_pastures()
-    player_in_turn = HUMAN_PLAYER
-    turn_number = 1
-    chosen_pasture = None
-    target_pasture = None
+    game = Game(init_pastures())
 
     # Pelin suoritus
     while running:
@@ -138,51 +102,41 @@ def main():
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT_MOUSE_BUTTON:
                 mouse_pos = pygame.mouse.get_pos()
-                for pasture in pastures:
+                for pasture in game.pastures:
                     # Etsitään valittu laidun
                     if pasture.collide_with_point(mouse_pos):
-                        if is_sheep_placement(turn_number):
-                            if not pasture.is_taken():
-                                place_sheep(player_in_turn, pasture, pastures)
-                                turn_number += 1
-                                player_in_turn = next_turn(player_in_turn)
+                        if game.is_in_initial_placement():
+                            if pasture.is_on_edge(game.pastures) and not pasture.is_taken():
+                                game.place_initial_sheep(pasture)
+                                game.next_turn()
                         else:  # Aloituslampaat on jo asetettu
-                            if pasture.is_taken() and pasture.owner == player_in_turn and pasture.sheep > 1:
+                            if pasture.is_taken() and game.is_controlled_by_player_in_turn(pasture):
                                 # Valitaan lähtöruutu
-                                chosen_pasture = pasture
+                                game.chosen_pasture = pasture
                                 targets = pasture.get_potential_targets(
-                                    pastures)
+                                    game.pastures)
                                 for target in targets:
                                     target.targeted = True
-                            elif pasture.targeted and chosen_pasture is not None and pasture is not chosen_pasture:
+                            elif pasture.targeted and game.chosen_pasture is not None and pasture is not game.chosen_pasture:
                                 # Jos lähtöruutu valittu, valitaan kohderuutu
-                                target_pasture = pasture
+                                game.target_pasture = pasture
                                 pasture.planned_sheep = 1
-                                chosen_pasture.planned_sheep = chosen_pasture.sheep - 1
-            elif ((event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_UP) or (event.type == pygame.KEYDOWN and event.key == pygame.K_UP)) and target_pasture is not None and chosen_pasture is not None:
-                if chosen_pasture.planned_sheep > 1:
-                    chosen_pasture.deduct_a_sheep()
-                    target_pasture.add_a_sheep()
-            elif ((event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_DOWN) or (event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN)) and target_pasture is not None and chosen_pasture is not None:
-                if target_pasture.planned_sheep > 1:
-                    target_pasture.deduct_a_sheep()
-                    chosen_pasture.add_a_sheep()
+                                game.chosen_pasture.planned_sheep = game.chosen_pasture.sheep - 1
+            elif ((event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_UP) or (event.type == pygame.KEYDOWN and event.key == pygame.K_UP)) and game.target_pasture is not None and game.chosen_pasture is not None:
+                game.try_to_add_sheep_to_planned_move()
+            elif ((event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_DOWN) or (event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN)) and game.target_pasture is not None and game.chosen_pasture is not None:
+                game.try_to_subtract_sheep_from_planned_move()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                if target_pasture is not None and target_pasture.planned_sheep > 0 and chosen_pasture is not None and chosen_pasture.planned_sheep > 0:
-                    chosen_pasture.move_sheep_to(target_pasture)
-                    remove_targets(pastures)
-                    chosen_pasture = None
-                    target_pasture = None
-                    turn_number += 1
-                    player_in_turn = next_turn(player_in_turn)
+                if game.target_pasture is not None and game.target_pasture.planned_sheep > 0 and game.chosen_pasture is not None and game.chosen_pasture.planned_sheep > 0:
+                    game.chosen_pasture.move_sheep_to(game.target_pasture)
+                    game.next_turn()
 
-            for pasture in pastures:
+            for pasture in game.pastures:
                 pasture.update()
 
-            render(screen, font, pastures, chosen_pasture,
-                   turn_number, player_in_turn)
+            render(screen, font, game)
             clock.tick(50)
-            if game_is_over(pastures, turn_number, player_in_turn):
+            if game.is_over():
                 screen.fill(BLACK)
                 text = font.render('Peli on ohi! Pisteet: 1000', True, 'white')
                 text_rect = text.get_rect(

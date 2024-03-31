@@ -116,6 +116,9 @@ class Pasture:
     def deduct_a_sheep(self):
         self.planned_sheep = self.planned_sheep - 1
 
+    def is_owned_by_human(self):
+        return self.owner == 0
+
     def update_sheep(self, owner: int, new_amount: int) -> None:
         self.owner = owner
         if owner == 0:
