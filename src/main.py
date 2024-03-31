@@ -46,7 +46,7 @@ def init_pastures(x_length=8, y_length=4) -> List[Pasture]:
     return pastures
 
 
-def render(screen, font, pastures, chosen_pasture, is_sheep_placement, player_in_turn):
+def render(screen, font, pastures: List[Pasture], chosen_pasture: Pasture, turn_number: int, player_in_turn: int):
     """Piirretään laitumet näytölle"""
 
     def highlight(pasture: Pasture) -> None:
@@ -72,9 +72,9 @@ def render(screen, font, pastures, chosen_pasture, is_sheep_placement, player_in
     mouse_position = pygame.mouse.get_pos()
     for pasture in pastures:
         if pasture.collide_with_point(mouse_position):
-            if is_sheep_placement and not pasture.is_taken() and pasture.is_on_edge(pastures):
+            if is_sheep_placement(turn_number) and not pasture.is_taken() and pasture.is_on_edge(pastures):
                 highlight(pasture)
-            if not is_sheep_placement and pasture.is_taken() and pasture.owner == player_in_turn:
+            if not is_sheep_placement(turn_number) and pasture.is_taken() and pasture.owner == player_in_turn:
                 highlight(pasture)
         elif pasture is chosen_pasture or pasture.targeted:
             highlight(pasture)
@@ -138,9 +138,10 @@ def main():
                     # Etsitään valittu laidun
                     if pasture.collide_with_point(mouse_pos):
                         if is_sheep_placement(turn_number):
-                            place_sheep(player_in_turn, pasture, pastures)
-                            turn_number += 1
-                            player_in_turn = next_turn(player_in_turn)
+                            if not pasture.is_taken():
+                                place_sheep(player_in_turn, pasture, pastures)
+                                turn_number += 1
+                                player_in_turn = next_turn(player_in_turn)
                         else:
                             if pasture.is_taken() and pasture.owner == player_in_turn and pasture.sheep > 1:
                                 chosen_pasture = pasture
@@ -158,7 +159,7 @@ def main():
                 pasture.update()
 
             render(screen, font, pastures, chosen_pasture,
-                   is_sheep_placement(turn_number), player_in_turn)
+                   turn_number, player_in_turn)
             clock.tick(50)
             if game_is_over(pastures, turn_number, player_in_turn):
                 screen.fill(BLACK)
