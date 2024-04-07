@@ -98,8 +98,13 @@ def main():
     # Pelin suoritus
     while running:
         for event in pygame.event.get():
+
             if event.type == pygame.QUIT:
                 running = False
+            elif not game.is_humans_turn:
+                # Tekoälyn vuoro
+                game.make_random_ai_move()
+                game.next_turn()
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT_MOUSE_BUTTON:
                 mouse_pos = pygame.mouse.get_pos()
                 for pasture in game.pastures:
