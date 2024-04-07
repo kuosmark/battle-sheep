@@ -8,5 +8,6 @@ Aineopintojen harjoitustyö: Algoritmit ja tekoäly -kurssilla toteutettu [Battl
 
 ## Viikkoraportit
 
-[Viikko 1](/dokumentaatio/viikkoraportit/viikko_1.md)
-[Viikko 2](/dokumentaatio/viikkoraportit/viikko_2.md)
+- [Viikko 1](/dokumentaatio/viikkoraportit/viikko_1.md)
+- [Viikko 2](/dokumentaatio/viikkoraportit/viikko_2.md)
+- [Viikko 3](/dokumentaatio/viikkoraportit/viikko_3.md)
