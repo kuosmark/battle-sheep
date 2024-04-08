@@ -17,9 +17,6 @@ HIGHLIGHTED_PASTURE_BORDER_COLOR = (0, 0, 0)  # musta
 BACKGROUND_COLOR = (255, 255, 255)  # valkoinen
 BLACK = (0, 0, 0)
 
-HUMAN_PLAYER = 0
-COMPUTER_PLAYER = 1
-
 
 def init_pastures(x_length=8, y_length=4) -> List[Pasture]:
     """Luodaan heksagonilaitumista pelilauta"""
@@ -103,8 +100,7 @@ def main():
                 running = False
             elif not game.is_humans_turn:
                 # Tekoälyn vuoro
-                game.make_random_ai_move()
-                game.next_turn()
+                game.make_ai_move()
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT_MOUSE_BUTTON:
                 mouse_pos = pygame.mouse.get_pos()
                 for pasture in game.pastures:
@@ -143,7 +139,9 @@ def main():
             clock.tick(50)
             if game.is_over():
                 screen.fill(BLACK)
-                text = font.render('Peli on ohi! Pisteet: 1000', True, 'white')
+                winner = game.calculate_winner()
+                text = font.render(
+                    f'{winner}', True, 'white')
                 text_rect = text.get_rect(
                     center=(DISPLAY_SIZE[0]/2, DISPLAY_SIZE[1]/2))
                 screen.blit(text, text_rect)

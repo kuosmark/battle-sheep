@@ -13,6 +13,8 @@ class Game:
         self.is_humans_turn = True
         self.chosen_pasture: Pasture | None = None
         self.target_pasture: Pasture | None = None
+        self.is_over_for_ai = False
+        self.is_over_for_human = False
 
     def is_in_initial_placement(self) -> bool:
         return self.turn <= 2
@@ -26,21 +28,37 @@ class Game:
             self.chosen_pasture = None
             self.target_pasture = None
             self.remove_targets()
+
+        if self.is_humans_turn and not self.is_over_for_ai:
+            # Pelaajan vuoro siirtyy tekoälylle, koska tekoäly ei ole hävinnyt
+            self.is_humans_turn = False
+        elif not self.is_humans_turn and not self.is_over_for_human:
+            # Tekoälyn vuoro siirtyy pelaajalle, koska pelaaja ei ole hävinnyt
+            self.is_humans_turn = True
+
         self.turn += 1
-        self.is_humans_turn = not self.is_humans_turn
+
+    def is_over_for(self, human: bool) -> bool:
+        for pasture in self.pastures:
+            if pasture.is_taken() and pasture.is_owned_by_human() == human:
+                potential_moves = pasture.get_potential_targets(self.pastures)
+                # Peli ei ole ohi, mikäli mahdollinen siirto löytyy
+                if len(potential_moves) > 0:
+                    return False
+        return True
 
     def is_over(self) -> bool:
         # Peli ei voi olla ohi, mikäli lampaita ei ole vielä asetettu
         if self.is_in_initial_placement():
             return False
         # Tarkistetaan, voiko pelaaja tehdä siirtoa
-        for pasture in self.pastures:
-            if pasture.is_taken() and self.is_controlled_by_player_in_turn(pasture):
-                potential_moves = pasture.get_potential_targets(self.pastures)
-                # Peli ei ole ohi, mikäli mahdollinen siirto löytyy
-                if len(potential_moves) > 0:
-                    return False
-        return True
+        human_game_over = self.is_over_for(True)
+        if human_game_over:
+            self.is_over_for_human = True
+        ai_game_over = self.is_over_for(False)
+        if ai_game_over:
+            self.is_over_for_ai = True
+        return human_game_over is True and ai_game_over is True
 
     def place_initial_sheep(self, pasture: Pasture) -> None:
         """Asettaa aloituslampaat annetulle laitumelle"""
@@ -86,3 +104,22 @@ class Game:
                 1, chosen_pasture.sheep)
             chosen_pasture.planned_sheep = chosen_pasture.sheep - chosen_target.planned_sheep
             chosen_pasture.move_sheep_to(chosen_target)
+
+    def make_ai_move(self):
+        self.make_random_ai_move()
+        self.next_turn()
+
+    def calculate_winner(self) -> str:
+        human_points = 0
+        ai_points = 0
+        for pasture in self.pastures:
+            if pasture.is_taken():
+                if pasture.is_owned_by_human():
+                    human_points += 1
+                else:
+                    ai_points += 1
+        if human_points == ai_points:
+            return 'Tasapeli!'
+        elif human_points > ai_points:
+            return 'Pelaaja voitti!'
+        return 'Tietokone voitti!'
