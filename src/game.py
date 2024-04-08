@@ -104,3 +104,18 @@ class Game:
                 1, chosen_pasture.sheep)
             chosen_pasture.planned_sheep = chosen_pasture.sheep - chosen_target.planned_sheep
             chosen_pasture.move_sheep_to(chosen_target)
+
+    def calculate_winner(self) -> str:
+        human_points = 0
+        ai_points = 0
+        for pasture in self.pastures:
+            if pasture.is_taken():
+                if pasture.is_owned_by_human():
+                    human_points += 1
+                else:
+                    ai_points += 1
+        if human_points == ai_points:
+            return 'Tasapeli!'
+        elif human_points > ai_points:
+            return 'Pelaaja voitti!'
+        return 'Tietokone voitti!'

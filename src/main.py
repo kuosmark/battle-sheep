@@ -143,7 +143,9 @@ def main():
             clock.tick(50)
             if game.is_over():
                 screen.fill(BLACK)
-                text = font.render('Peli on ohi! Pisteet: 1000', True, 'white')
+                winner = game.calculate_winner()
+                text = font.render(
+                    f'{winner}', True, 'white')
                 text_rect = text.get_rect(
                     center=(DISPLAY_SIZE[0]/2, DISPLAY_SIZE[1]/2))
                 screen.blit(text, text_rect)
