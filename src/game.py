@@ -7,14 +7,43 @@ INITIAL_SHEEP = 16
 
 
 class Game:
-    def __init__(self, pastures: List[Pasture]) -> None:
-        self.pastures = pastures
+    def __init__(self) -> None:
+        self.pastures = self.init_pastures()
         self.turn = 1
         self.is_humans_turn = True
         self.chosen_pasture: Pasture | None = None
         self.target_pasture: Pasture | None = None
         self.is_over_for_ai = False
         self.is_over_for_human = False
+
+    def init_pastures(self) -> List[Pasture]:
+        """Luodaan heksagonilaitumista pelilauta"""
+        x_length = 8
+        y_length = 4
+        initial_position = (50, 50)
+        leftmost_pasture = Pasture(initial_position)
+        pastures = [leftmost_pasture]
+
+        for y_axis in range(y_length):
+            if y_axis > 0:
+                position = leftmost_pasture.vertices[2]
+                leftmost_pasture = Pasture(position)
+                pastures.append(leftmost_pasture)
+
+            pasture = leftmost_pasture
+            for x_axis in range(x_length - 1):
+                (x, y) = pasture.position
+                # Piirretään joka toinen laidun ylä- ja joka toinen alaviistoon edellisestä
+                if x_axis % 2 == 1:
+                    position = (x + pasture.radius * 3 / 2,
+                                y - pasture.minimal_radius)
+                else:
+                    position = (x + pasture.radius * 3 / 2,
+                                y + pasture.minimal_radius)
+                pasture = Pasture(position)
+                pastures.append(pasture)
+
+        return pastures
 
     def is_in_initial_placement(self) -> bool:
         return self.turn <= 2
@@ -63,7 +92,11 @@ class Game:
     def place_initial_sheep(self, pasture: Pasture) -> None:
         """Asettaa aloituslampaat annetulle laitumelle"""
         player = 0 if self.is_humans_turn else 1
-        pasture.update_sheep(player, INITIAL_SHEEP)
+        if pasture.is_free() and pasture.is_on_edge(self.pastures):
+            pasture.update_sheep(player, INITIAL_SHEEP)
+        else:
+            raise ValueError(
+                "The given pasture is not suitable for placing sheep.")
 
     def is_controlled_by_player_in_turn(self, pasture: Pasture) -> bool:
         return self.is_humans_turn == pasture.is_owned_by_human()
@@ -123,3 +156,30 @@ class Game:
         elif human_points > ai_points:
             return 'Pelaaja voitti!'
         return 'Tietokone voitti!'
+
+    def click_on_pasture(self, pasture: Pasture):
+        if self.is_in_initial_placement():
+            if pasture.is_on_edge(self.pastures) and not pasture.is_taken():
+                self.place_initial_sheep(pasture)
+                self.next_turn()
+        else:  # Aloituslampaat on jo asetettu
+            if pasture.is_taken() and self.is_controlled_by_player_in_turn(pasture):
+                # Valitaan lähtöruutu
+                self.chosen_pasture = pasture
+                targets = pasture.get_potential_targets(
+                    self.pastures)
+                for target in targets:
+                    target.targeted = True
+            elif pasture.targeted and self.chosen_pasture is not None and self.chosen_pasture.sheep is not None and pasture is not self.chosen_pasture:
+                # Jos lähtöruutu valittu, valitaan kohderuutu
+                self.target_pasture = pasture
+                pasture.planned_sheep = 1
+                self.chosen_pasture.planned_sheep = self.chosen_pasture.sheep - 1
+
+    def confirm_move(self):
+        if self.target_pasture is not None and self.target_pasture.planned_sheep > 0 and self.chosen_pasture is not None and self.chosen_pasture.planned_sheep > 0:
+            self.chosen_pasture.move_sheep_to(self.target_pasture)
+            self.next_turn()
+
+    def are_pastures_chosen(self) -> bool:
+        return self.target_pasture is not None and self.chosen_pasture is not None

@@ -64,6 +64,9 @@ class Pasture:
         """Kertoo, onko laidun pelilaudan reunalla (reunalaitumilla on alle 6 naapuria)"""
         return self.number_of_neighbours(pastures) < 6
 
+    def get_amount_of_sheep(self) -> int:
+        return self.sheep if self.sheep is not None else 0
+
     def collide_with_point(self, point: Tuple[float, float]) -> bool:
         """Returns True if distance from centre to point is less than horizontal_length"""
         return math.dist(point, self.centre) < self.minimal_radius
@@ -109,6 +112,9 @@ class Pasture:
 
     def is_taken(self) -> bool:
         return self.owner is not None
+
+    def is_free(self) -> bool:
+        return self.owner is None
 
     def add_a_sheep(self):
         self.planned_sheep = self.planned_sheep + 1
