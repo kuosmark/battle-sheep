@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List
 from typing import Tuple
-from uuid import uuid4
 
 import pygame
 
@@ -26,7 +25,6 @@ class Pasture:
     radius: float = 50
     highlight_offset: int = 3
     max_highlight_ticks: int = 15
-    id: str = field(default_factory=lambda: uuid4().hex)
 
     def __post_init__(self):
         self.vertices = self.compute_vertices()
