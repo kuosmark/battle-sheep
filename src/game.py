@@ -111,10 +111,6 @@ class Game:
             self.chosen_pasture.add_a_sheep()
             self.target_pasture.deduct_a_sheep()
 
-    def get_pastures_on_edge(self):
-        return list(filter(lambda pasture: pasture.is_on_edge(
-            self.pastures), self.pastures))
-
     def sheep_can_be_moved(self, pasture: Pasture) -> bool:
         return self.is_controlled_by_player_in_turn(pasture) and pasture.sheep is not None and pasture.sheep > 1 and not pasture.is_surrounded(self.pastures)
 
@@ -122,10 +118,13 @@ class Game:
         return list(filter(
             self.sheep_can_be_moved, self.pastures))
 
+    def get_potential_initial_pastures(self) -> List[Pasture]:
+        return list(filter(lambda pasture: pasture.is_free() and pasture.is_on_edge(self.pastures), self.pastures))
+
     def make_random_ai_move(self):
         if self.is_in_initial_placement():
-            edge_pastures = self.get_pastures_on_edge()
-            initial_pasture = random.choice(edge_pastures)
+            initial_pasture = random.choice(
+                self.get_potential_initial_pastures())
             self.place_initial_sheep(initial_pasture)
         else:
             potential_pastures = self.get_potential_sheep_to_move()
@@ -183,3 +182,6 @@ class Game:
 
     def are_pastures_chosen(self) -> bool:
         return self.target_pasture is not None and self.chosen_pasture is not None
+
+    def get_targeted_pastures(self) -> List[Pasture]:
+        return list(filter(lambda pasture: pasture.targeted is True, self.pastures))
