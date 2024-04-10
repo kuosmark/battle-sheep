@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List
 from typing import Tuple
-from uuid import uuid4
 
 import pygame
 
@@ -26,7 +25,6 @@ class Pasture:
     radius: float = 50
     highlight_offset: int = 3
     max_highlight_ticks: int = 15
-    id: str = field(default_factory=lambda: uuid4().hex)
 
     def __post_init__(self):
         self.vertices = self.compute_vertices()
@@ -63,6 +61,9 @@ class Pasture:
     def is_on_edge(self, pastures: List[Pasture]) -> bool:
         """Kertoo, onko laidun pelilaudan reunalla (reunalaitumilla on alle 6 naapuria)"""
         return self.number_of_neighbours(pastures) < 6
+
+    def get_amount_of_sheep(self) -> int:
+        return self.sheep if self.sheep is not None else 0
 
     def collide_with_point(self, point: Tuple[float, float]) -> bool:
         """Returns True if distance from centre to point is less than horizontal_length"""
@@ -109,6 +110,9 @@ class Pasture:
 
     def is_taken(self) -> bool:
         return self.owner is not None
+
+    def is_free(self) -> bool:
+        return self.owner is None
 
     def add_a_sheep(self):
         self.planned_sheep = self.planned_sheep + 1

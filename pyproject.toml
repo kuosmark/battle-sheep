@@ -6,13 +6,15 @@ authors = ["Markus Kuosmanen <markus.kuosmanen@robu.fi>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
 pygame = "^2.5.2"
+python = "^3.12"
 
 [tool.poetry.group.dev.dependencies]
 autopep8 = "^2.1.0"
+coverage = "^7.4.4"
 mypy = "^1.9.0"
 pylint = "^3.1.0"
+pytest = "^8.1.1"
 
 [build-system]
 requires = ["poetry-core"]

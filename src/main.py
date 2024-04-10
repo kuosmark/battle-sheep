@@ -1,4 +1,3 @@
-from typing import List
 import pygame
 
 from game import Game
@@ -16,34 +15,6 @@ PASTURE_BORDER_COLOR = (90, 110, 2)  # tummempi ruoho
 HIGHLIGHTED_PASTURE_BORDER_COLOR = (0, 0, 0)  # musta
 BACKGROUND_COLOR = (255, 255, 255)  # valkoinen
 BLACK = (0, 0, 0)
-
-
-def init_pastures(x_length=8, y_length=4) -> List[Pasture]:
-    """Luodaan heksagonilaitumista pelilauta"""
-    initial_position = (50, 50)
-    leftmost_pasture = Pasture(initial_position)
-    pastures = [leftmost_pasture]
-
-    for y_axis in range(y_length):
-        if y_axis > 0:
-            position = leftmost_pasture.vertices[2]
-            leftmost_pasture = Pasture(position)
-            pastures.append(leftmost_pasture)
-
-        pasture = leftmost_pasture
-        for x_axis in range(x_length - 1):
-            (x, y) = pasture.position
-            # Piirretään joka toinen laidun ylä- ja joka toinen alaviistoon edellisestä
-            if x_axis % 2 == 1:
-                position = (x + pasture.radius * 3 / 2,
-                            y - pasture.minimal_radius)
-            else:
-                position = (x + pasture.radius * 3 / 2,
-                            y + pasture.minimal_radius)
-            pasture = Pasture(position)
-            pastures.append(pasture)
-
-    return pastures
 
 
 def render(screen, font, game: Game):
@@ -82,6 +53,34 @@ def render(screen, font, game: Game):
     pygame.display.flip()
 
 
+def get_event_name(event) -> str:
+    return pygame.event.event_name(event.type)
+
+
+def is_left_button_pressed(event) -> bool:
+    return get_event_name(event) == 'MouseButtonDown' and event.button == LEFT_MOUSE_BUTTON
+
+
+def is_mouse_wheel_scrolled_up(event) -> bool:
+    if get_event_name(event) == 'MouseButtonDown' and event.button == MOUSE_WHEEL_SCROLL_UP:
+        return True
+    if get_event_name(event) == 'KeyDown' and event.key == pygame.K_UP:
+        return True
+    return False
+
+
+def is_mouse_wheel_scrolled_down(event) -> bool:
+    if get_event_name(event) == 'MouseButtonDown' and event.button == MOUSE_WHEEL_SCROLL_DOWN:
+        return True
+    if get_event_name(event) == 'KeyDown' and event.key == pygame.K_DOWN:
+        return True
+    return False
+
+
+def is_enter_pressed(event) -> bool:
+    return get_event_name(event) == 'KeyDown' and event.key == pygame.K_RETURN
+
+
 def main():
     pygame.init()
     screen = pygame.display.set_mode(DISPLAY_SIZE)
@@ -90,53 +89,34 @@ def main():
 
     running = True
 
-    game = Game(init_pastures())
+    game = Game()
 
     # Pelin suoritus
     while running:
         for event in pygame.event.get():
-
             if event.type == pygame.QUIT:
                 running = False
             elif not game.is_humans_turn:
                 # Tekoälyn vuoro
                 game.make_ai_move()
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT_MOUSE_BUTTON:
+                clock.tick(50)
+            elif is_left_button_pressed(event):
                 mouse_pos = pygame.mouse.get_pos()
                 for pasture in game.pastures:
                     # Etsitään valittu laidun
                     if pasture.collide_with_point(mouse_pos):
-                        if game.is_in_initial_placement():
-                            if pasture.is_on_edge(game.pastures) and not pasture.is_taken():
-                                game.place_initial_sheep(pasture)
-                                game.next_turn()
-                        else:  # Aloituslampaat on jo asetettu
-                            if pasture.is_taken() and game.is_controlled_by_player_in_turn(pasture):
-                                # Valitaan lähtöruutu
-                                game.chosen_pasture = pasture
-                                targets = pasture.get_potential_targets(
-                                    game.pastures)
-                                for target in targets:
-                                    target.targeted = True
-                            elif pasture.targeted and game.chosen_pasture is not None and pasture is not game.chosen_pasture:
-                                # Jos lähtöruutu valittu, valitaan kohderuutu
-                                game.target_pasture = pasture
-                                pasture.planned_sheep = 1
-                                game.chosen_pasture.planned_sheep = game.chosen_pasture.sheep - 1
-            elif ((event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_UP) or (event.type == pygame.KEYDOWN and event.key == pygame.K_UP)) and game.target_pasture is not None and game.chosen_pasture is not None:
+                        game.click_on_pasture(pasture)
+            elif is_mouse_wheel_scrolled_up(event) and game.are_pastures_chosen():
                 game.try_to_add_sheep_to_planned_move()
-            elif ((event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_DOWN) or (event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN)) and game.target_pasture is not None and game.chosen_pasture is not None:
+            elif is_mouse_wheel_scrolled_down(event) and game.are_pastures_chosen():
                 game.try_to_subtract_sheep_from_planned_move()
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                if game.target_pasture is not None and game.target_pasture.planned_sheep > 0 and game.chosen_pasture is not None and game.chosen_pasture.planned_sheep > 0:
-                    game.chosen_pasture.move_sheep_to(game.target_pasture)
-                    game.next_turn()
+            elif is_enter_pressed(event):
+                game.confirm_move()
 
             for pasture in game.pastures:
                 pasture.update()
 
             render(screen, font, game)
-            clock.tick(50)
             if game.is_over():
                 screen.fill(BLACK)
                 winner = game.calculate_winner()
