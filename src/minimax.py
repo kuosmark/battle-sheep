@@ -1,7 +1,7 @@
 import game
 
 
-def get_next_moves(game_state):
+def get_next_moves(game: Game):
     return []
 
 # Minimax-algoritmi

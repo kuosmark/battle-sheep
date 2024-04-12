@@ -121,24 +121,26 @@ class Game:
     def get_potential_initial_pastures(self) -> List[Pasture]:
         return list(filter(lambda pasture: pasture.is_free() and pasture.is_on_edge(self.pastures), self.pastures))
 
-    def make_random_ai_move(self):
+    def make_ai_move(self):
         if self.is_in_initial_placement():
             initial_pasture = random.choice(
                 self.get_potential_initial_pastures())
             self.place_initial_sheep(initial_pasture)
         else:
+            # Haetaan mahdolliset aloituslaitumet
             potential_pastures = self.get_potential_sheep_to_move()
+            # Valitaan paras lähtölaidun
             chosen_pasture = random.choice(potential_pastures)
             potential_targets = chosen_pasture.get_potential_targets(
                 self.pastures)
+            # Valitaan paras kohdelaidun
             chosen_target = random.choice(potential_targets)
+            # Valitaan paras lampaiden määrä
             chosen_target.planned_sheep = random.randrange(
                 1, chosen_pasture.sheep)
+            # Tehdään siirto
             chosen_pasture.planned_sheep = chosen_pasture.sheep - chosen_target.planned_sheep
             chosen_pasture.move_sheep_to(chosen_target)
-
-    def make_ai_move(self):
-        self.make_random_ai_move()
         self.next_turn()
 
     def calculate_winner(self) -> str:
