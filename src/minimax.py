@@ -1,29 +1,85 @@
-import game
+import copy
+from game import Game
+
+INITIAL_SHEEP = 16
 
 
-def get_next_moves(game: Game):
-    return []
+def calculate_ai_move(game: Game):
+    depth = 3
+    # Tekoäly tahtoo minimoida arvon
+    value = float('Inf')  # Pelitilanteen heuristinen arvo
+    best_pasture = None
+    best_target = None
+    best_amount = None
+    if game.is_in_initial_placement():
+        for pasture in game.get_potential_initial_pastures():
+            current_game = copy.deepcopy(game)
+            current_game.make_initial_turn(pasture)
+            # Mennään syvemmälle
+            minimax_value = minimax(current_game, depth - 1)
+            if (minimax_value < value):
+                best_pasture = pasture
+                best_target = None
+                best_amount = INITIAL_SHEEP
+                value = minimax_value
+
+    else:
+        for pasture in game.get_potential_sheep_to_move():
+            for target_pasture in pasture.get_potential_targets(game.pastures):
+                for amount_of_sheep in range(1, pasture.get_amount_of_sheep()):
+                    current_game = copy.deepcopy(game)
+                    current_game.make_normal_turn(
+                        pasture, target_pasture, amount_of_sheep)
+                    # Mennään syvemmälle
+                    minimax_value = minimax(current_game, depth - 1)
+                    if (minimax_value < value):
+                        best_pasture = pasture
+                        best_target = target_pasture
+                        best_amount = amount_of_sheep
+                        value = minimax_value
+
+    print(best_pasture)
+    print(best_target)
+    print(best_amount)
+    print(best_pasture in game.pastures)
+    return (best_pasture, best_target, best_amount)
+
 
 # Minimax-algoritmi
-# Muuttuja game_state sisältää laudan pelitilanteen, lampaiden sijainnit ja määrät.
+# Muuttuja game sisältää laudan pelitilanteen, lampaiden sijainnit ja määrät.
 # Muuttuja depth on syvyys, johon saakka pelitilanteet käydään läpi.
-# Muuttuja is_max_player kertoo, onko heuristisen funktion arvon maksimoijan vuoro.
+# is_max_player == is_human_player
 
 
-def minimax(game_state, depth: int, is_max_player: bool) -> float:
+def minimax(game, depth: int) -> float:
+    print(str(game))
     if depth == 0:
-        return game.evaluate_game_state(game_state)
+        return game.evaluate_game_state()
 
-    if is_max_player:  # Pelaaja tahtoo maksimoida arvon
+    if game.is_humans_turn:  # Pelaaja tahtoo maksimoida arvon
         value = float('-Inf')  # Pelitilanteen heuristinen arvo
-        next_moves = get_next_moves(game_state)
-        for move in next_moves:
-            value = max(value, minimax(move, depth - 1, False))
+
+        for pasture in game.get_potential_sheep_to_move():
+            for target_pasture in pasture.get_potential_targets(game.pastures):
+                for amount_of_sheep in range(1, pasture.get_amount_of_sheep()):
+                    current_game = copy.deepcopy(game)
+                    current_game.make_normal_turn(
+                        pasture, target_pasture, amount_of_sheep)
+                    # Mennään syvemmälle
+                    value = max(value, minimax(current_game, depth - 1))
+
         return value
 
-    # Pelaaja tahtoo minimoida arvon
+    # Tekoäly tahtoo minimoida arvon
     value = float('Inf')  # Pelitilanteen heuristinen arvo
-    next_moves = get_next_moves(game_state)
-    for move in next_moves:
-        value = min(value, minimax(move, depth - 1, True))
+
+    for pasture in game.get_potential_sheep_to_move():
+        for target_pasture in pasture.get_potential_targets(game.pastures):
+            for amount_of_sheep in range(1, pasture.get_amount_of_sheep()):
+                current_game = copy.deepcopy(game)
+                current_game.make_normal_turn(
+                    pasture, target_pasture, amount_of_sheep)
+                # Mennään syvemmälle
+                value = min(value, minimax(current_game, depth - 1))
+
     return value

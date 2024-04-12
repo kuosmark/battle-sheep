@@ -1,6 +1,7 @@
 import pygame
 
 from game import Game
+from minimax import calculate_ai_move
 
 DISPLAY_SIZE = (960, 540)
 FONT_SIZE = 48
@@ -96,7 +97,9 @@ def main():
                 running = False
             elif not game.is_humans_turn and not game.is_over_for_ai:
                 # Tekoälyn vuoro
-                game.make_ai_move()
+                next_pasture, next_target, sheep = calculate_ai_move(
+                    game)
+                game.make_ai_move(next_pasture, next_target, sheep)
                 clock.tick(50)
             elif is_left_button_pressed(event):
                 mouse_pos = pygame.mouse.get_pos()
