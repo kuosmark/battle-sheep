@@ -102,12 +102,12 @@ class Game:
         return self.is_humans_turn == pasture.is_owned_by_human()
 
     def try_to_add_sheep_to_planned_move(self):
-        if self.chosen_pasture.planned_sheep >= 2:
+        if self.are_pastures_chosen() and self.chosen_pasture.planned_sheep >= 2:
             self.chosen_pasture.deduct_a_sheep()
             self.target_pasture.add_a_sheep()
 
     def try_to_subtract_sheep_from_planned_move(self):
-        if self.target_pasture.planned_sheep >= 2:
+        if self.are_pastures_chosen() and self.target_pasture.planned_sheep >= 2:
             self.chosen_pasture.add_a_sheep()
             self.target_pasture.deduct_a_sheep()
 
@@ -158,6 +158,10 @@ class Game:
             return 'Pelaaja voitti!'
         return 'Tietokone voitti!'
 
+    def remove_planned_sheep(self):
+        for pasture in self.pastures:
+            pasture.planned_sheep = None
+
     def click_on_pasture(self, pasture: Pasture):
         if self.is_in_initial_placement():
             if pasture.is_on_edge(self.pastures) and not pasture.is_taken():
@@ -167,12 +171,20 @@ class Game:
             if pasture.is_taken() and self.is_controlled_by_player_in_turn(pasture):
                 # Valitaan lähtöruutu
                 self.chosen_pasture = pasture
+                if self.target_pasture is not None:
+                    self.remove_planned_sheep()
+                    self.target_pasture = None
                 targets = pasture.get_potential_targets(
                     self.pastures)
-                for target in targets:
-                    target.targeted = True
+                for pasture in self.pastures:
+                    if pasture in targets:
+                        pasture.targeted = True
+                    else:
+                        pasture.targeted = False
             elif pasture.targeted and self.chosen_pasture is not None and self.chosen_pasture.sheep is not None and pasture is not self.chosen_pasture:
                 # Jos lähtöruutu valittu, valitaan kohderuutu
+                if self.target_pasture is not None:
+                    self.remove_planned_sheep()
                 self.target_pasture = pasture
                 pasture.planned_sheep = 1
                 self.chosen_pasture.planned_sheep = self.chosen_pasture.sheep - 1
@@ -187,3 +199,17 @@ class Game:
 
     def get_targeted_pastures(self) -> List[Pasture]:
         return list(filter(lambda pasture: pasture.targeted is True, self.pastures))
+
+    def should_be_focused(self, pasture: Pasture, pointed_at: bool) -> bool:
+        if pasture is self.chosen_pasture:
+            return True
+        elif pasture.targeted:
+            return True
+        elif pasture.planned_sheep is not None:
+            return True
+        elif pointed_at:
+            if self.is_in_initial_placement() and pasture.is_on_edge(self.pastures) and pasture.is_free():
+                return True
+            elif not self.is_in_initial_placement() and pasture.is_taken() and self.is_controlled_by_player_in_turn(pasture):
+                return True
+        return False
