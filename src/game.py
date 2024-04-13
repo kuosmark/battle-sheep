@@ -15,7 +15,23 @@ class Game:
         self.is_over_for_human = False
 
     def evaluate_game_state(self) -> float:
-        return 1
+        value: float = 0
+        for pasture in self.pastures:
+            if pasture.is_taken():
+                free_neighbours = pasture.get_amount_of_free_neighbours(
+                    self.pastures)
+                friendly_neighbours = pasture.get_amount_of_free_neighbours(
+                    self.pastures)
+                if pasture.is_owned_by_human():
+                    # Ihmiselle yksi piste jokaisesta tyhjästä naapurilaitumesta
+                    value += free_neighbours
+                    # Ihmiselle sadasosapiste jokaisesta omasta naapurilaitumesta
+                    value += friendly_neighbours * 0.01
+                else:
+                    value -= free_neighbours
+                    value -= friendly_neighbours * 0.01
+        print('Pelitilanteen arvo on ' + str(value))
+        return value
 
     def init_pastures(self) -> List[Pasture]:
         """Luodaan heksagonilaitumista pelilauta"""

@@ -5,7 +5,7 @@ INITIAL_SHEEP = 16
 
 
 def calculate_ai_move(game: Game):
-    depth = 1
+    depth = 3
     # Tekoäly tahtoo minimoida arvon
     value = float('Inf')  # Pelitilanteen heuristinen arvo
     best_pasture = None
@@ -40,6 +40,7 @@ def calculate_ai_move(game: Game):
                         best_amount = amount_of_sheep
                         value = minimax_value
 
+    print('Valittu arvo on ' + str(value))
     return (best_pasture, best_target, best_amount)
 
 
@@ -58,7 +59,8 @@ def minimax(game, depth: int) -> float:
                         pasture, target_pasture, amount_of_sheep)
                     # Mennään syvemmälle
                     value = max(value, minimax(game_copy, depth - 1))
-                    game_copy.undo_move(pasture, target_pasture, amount_of_sheep)
+                    game_copy.undo_move(
+                        pasture, target_pasture, amount_of_sheep)
 
         return value
 
