@@ -21,7 +21,7 @@ def render(screen, font, game: Game):
 
     if game.is_over():
         screen.fill(BLACK)
-        winner = game.calculate_winner()
+        winner = game.get_winner_text()
         text = font.render(
             f'{winner}', True, 'white')
         text_rect = text.get_rect(
@@ -84,7 +84,6 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode(DISPLAY_SIZE)
     font = pygame.font.SysFont(None, FONT_SIZE)
-    clock = pygame.time.Clock()
 
     running = True
 

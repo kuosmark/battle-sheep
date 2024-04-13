@@ -75,6 +75,8 @@ class Game:
             self.target_pasture = None
             self.remove_targets()
 
+        # Tarkastetaan, onko peli ohi
+        self.is_over()
         if self.is_humans_turn and not self.is_over_for_ai:
             # Pelaajan vuoro siirtyy tekoälylle, koska tekoäly ei ole hävinnyt
             self.is_humans_turn = False
@@ -175,7 +177,22 @@ class Game:
                         "Pastures were not found.")
                 self.make_normal_turn(from_pasture, to_pasture, sheep)
 
-    def calculate_winner(self) -> str:
+    def human_has_larger_continuous_pasture(self):
+        # Toteutus vaatii vielä parantelua
+        human_friendly_neighbours = 0
+        ai_friendly_neighbours = 0
+        for pasture in self.pastures:
+            friendly_neighbours = len(
+                pasture.get_friendly_neighbours(self.pastures))
+            if pasture.is_owned_by_human():
+                human_friendly_neighbours += friendly_neighbours
+            else:
+                ai_friendly_neighbours += friendly_neighbours
+        return human_friendly_neighbours > ai_friendly_neighbours
+
+    def calculate_human_won(self) -> bool | None:
+        if not self.is_over():
+            return None
         human_points = 0
         ai_points = 0
         for pasture in self.pastures:
@@ -185,10 +202,14 @@ class Game:
                 else:
                     ai_points += 1
         if human_points == ai_points:
-            return 'Tasapeli!'
-        elif human_points > ai_points:
-            return 'Pelaaja voitti!'
-        return 'Tietokone voitti!'
+            return self.human_has_larger_continuous_pasture()
+        return human_points > ai_points
+
+    def get_winner_text(self) -> str:
+        human_won = self.calculate_human_won()
+        if human_won is None:
+            return 'Virhe'
+        return 'Pelaaja voitti!' if human_won else 'Tietokone voitti!'
 
     def remove_planned_sheep(self):
         for pasture in self.pastures:
