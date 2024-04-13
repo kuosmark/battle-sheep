@@ -111,10 +111,10 @@ def main():
         else:
             if not game.is_over_for_ai:
                 # Tekoälyn vuoro
+                pygame.time.wait(1000)
                 next_pasture, next_target, sheep = calculate_ai_move(
                     game)
                 game.make_ai_move(next_pasture, next_target, sheep)
-                clock.tick(50)
 
         render(screen, font, game)
 
