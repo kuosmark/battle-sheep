@@ -20,15 +20,16 @@ class Game:
             if pasture.is_taken():
                 free_neighbours = pasture.get_amount_of_free_neighbours(
                     self.pastures)
+                free_neighbours_value = free_neighbours * pasture.get_amount_of_sheep()
                 friendly_neighbours = pasture.get_amount_of_free_neighbours(
                     self.pastures)
                 if pasture.is_owned_by_human():
-                    # Ihmiselle yksi piste jokaisesta tyhjästä naapurilaitumesta
-                    value += free_neighbours
-                    # Ihmiselle sadasosapiste jokaisesta omasta naapurilaitumesta
-                    value += friendly_neighbours * 0.01
+                    # Ihmiselle yksi piste jokaisesta tyhjästä naapurilaitumesta kerrottuna lampaiden määrällä
+                    value += free_neighbours_value
+                    # Ihmiselle kymmenesosapiste jokaisesta omasta naapurilaitumesta
+                    value += friendly_neighbours * 0.1
                 else:
-                    value -= free_neighbours
+                    value -= free_neighbours_value
                     value -= friendly_neighbours * 0.01
         print('Pelitilanteen arvo on ' + str(value))
         return value
