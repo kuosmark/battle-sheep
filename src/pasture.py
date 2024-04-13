@@ -2,15 +2,14 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import List
-from typing import Tuple
+from typing import List, Tuple
 
 import pygame
 
 PASTURE_COLOR = (163, 178, 3)  # vaalea ruoho
 RED_SHEEP_COLOR = (206, 51, 27)  # punainen
 BLUE_SHEEP_COLOR = (7, 83, 141)  # sininen
-TEXT_COLOR = (0, 0, 0)  # musta
+BLACK = (0, 0, 0)  # musta
 WHITE = (255, 255, 255)  # valkoinen
 
 
@@ -23,17 +22,10 @@ class Pasture:
     targeted: bool = False
     colour: Tuple[int, ...] = PASTURE_COLOR
     radius: float = 50
-    highlight_offset: int = 3
-    max_highlight_ticks: int = 15
+    focused = False
 
     def __post_init__(self):
         self.vertices = self.compute_vertices()
-        self.highlight_tick = 0
-
-    def update(self):
-        """Updates tile highlights"""
-        if self.highlight_tick > 0:
-            self.highlight_tick -= 1
 
     def compute_vertices(self) -> List[Tuple[float, float]]:
         """Returns a list of the pasture's vertices as x, y tuples"""
@@ -84,6 +76,12 @@ class Pasture:
         """Palauttaa vapaat naapurilaitumet"""
         return list(filter(self.has_free_neighbour, pastures))
 
+    def get_amount_of_free_neighbours(self, pastures: List[Pasture]) -> int:
+        return len(self.get_free_neighbours(pastures))
+
+    def get_friendly_neighbours(self, pastures: List[Pasture]) -> List[Pasture]:
+        return list(filter(lambda neighbour: neighbour.owner == self.owner, self.get_free_neighbours(pastures)))
+
     def is_surrounded(self, pastures: List[Pasture]) -> bool:
         """Palauttaa, onko laidun ympäröity vallatuilla laitumilla"""
         free_neighbours = self.get_free_neighbours(pastures)
@@ -94,19 +92,13 @@ class Pasture:
         pygame.draw.polygon(screen, self.highlight_colour, self.vertices)
         if self.planned_sheep is not None:
             text_surface = font.render(
-                str(self.planned_sheep), True, WHITE)
+                str(self.planned_sheep), True, BLACK)
             text_rect = text_surface.get_rect(center=self.centre)
             screen.blit(text_surface, text_rect)
         elif self.sheep is not None:
-            text_surface = font.render(str(self.sheep), True, TEXT_COLOR)
+            text_surface = font.render(str(self.sheep), True, WHITE)
             text_rect = text_surface.get_rect(center=self.centre)
             screen.blit(text_surface, text_rect)
-
-    def render_highlight(self, screen, border_colour) -> None:
-        """Draws a border around the pasture with the specified colour"""
-        self.highlight_tick = self.max_highlight_ticks
-        pygame.draw.aalines(screen, border_colour,
-                            closed=True, points=self.vertices)
 
     def is_taken(self) -> bool:
         return self.owner is not None
@@ -130,6 +122,14 @@ class Pasture:
         elif owner == 1:
             self.colour = BLUE_SHEEP_COLOR
         self.sheep = new_amount
+
+    def add_permanent_sheep(self, amount: int):
+        self.sheep = amount
+
+    def reset(self):
+        self.owner = None
+        self.sheep = None
+        self.colour = PASTURE_COLOR
 
     def get_all_direction_vectors(self):
         """Returns all direction vectors for a flat-topped hex grid."""
@@ -207,7 +207,7 @@ class Pasture:
     @property
     def highlight_colour(self) -> Tuple[int, ...]:
         """Colour of the pasture tile when rendering highlight"""
-        offset = self.highlight_offset * self.highlight_tick
+        offset = 60 if self.focused else 0
 
         def brighten(x, y):
             return x + y if x + y < 255 else 255

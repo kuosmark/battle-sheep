@@ -33,14 +33,6 @@ class TestGame(unittest.TestCase):
         self.game.click_on_pasture(target)
         return target
 
-    def add_sheep_to_target(self, times: int):
-        for _ in range(times):
-            self.game.try_to_add_sheep_to_planned_move()
-
-    def subtract_sheep_from_target(self, times: int):
-        for _ in range(times):
-            self.game.try_to_subtract_sheep_from_planned_move()
-
     def test_initial_sheep_can_be_placed_on_free_edge_pasture(self):
         choice = self.get_free_edge_pasture()
         self.game.place_initial_sheep(choice)
@@ -98,32 +90,32 @@ class TestGame(unittest.TestCase):
     def test_single_sheep_is_added_to_target(self):
         target = self.play_initial_phase_and_choose_pasture_and_target()
 
-        self.add_sheep_to_target(1)
+        self.game.add_sheep_to_target(1)
         self.assertEqual(target.planned_sheep, MIN_SHEEP_TO_MOVE + 1)
 
     def test_ten_sheep_is_added_to_target(self):
         target = self.play_initial_phase_and_choose_pasture_and_target()
 
-        self.add_sheep_to_target(10)
+        self.game.add_sheep_to_target(10)
         self.assertEqual(target.planned_sheep, MIN_SHEEP_TO_MOVE + 10)
 
     def test_all_but_one_sheep_can_be_added_to_target(self):
         target = self.play_initial_phase_and_choose_pasture_and_target()
 
-        self.add_sheep_to_target(100)
+        self.game.add_sheep_to_target(100)
         self.assertEqual(target.planned_sheep, INITIAL_SHEEP - 1)
 
     def test_adding_sheep_can_be_reversed(self):
         target = self.play_initial_phase_and_choose_pasture_and_target()
 
-        self.add_sheep_to_target(10)
-        self.subtract_sheep_from_target(10)
+        self.game.add_sheep_to_target(10)
+        self.game.subtract_sheep_from_target(10)
         self.assertEqual(target.planned_sheep, MIN_SHEEP_TO_MOVE)
 
     def test_at_least_one_sheep_must_be_on_target(self):
         target = self.play_initial_phase_and_choose_pasture_and_target()
 
-        self.subtract_sheep_from_target(10)
+        self.game.subtract_sheep_from_target(10)
         self.assertEqual(target.planned_sheep, MIN_SHEEP_TO_MOVE)
 
     def test_minimum_amount_of_sheep_is_moved_to_target(self):
@@ -133,6 +125,6 @@ class TestGame(unittest.TestCase):
 
     def test_max_amount_of_sheep_is_moved_to_target(self):
         target = self.play_initial_phase_and_choose_pasture_and_target()
-        self.add_sheep_to_target(MAX_SHEEP_TO_MOVE - MIN_SHEEP_TO_MOVE)
+        self.game.add_sheep_to_target(MAX_SHEEP_TO_MOVE - MIN_SHEEP_TO_MOVE)
         self.game.confirm_move()
         self.assertEqual(target.get_amount_of_sheep(), MAX_SHEEP_TO_MOVE)
