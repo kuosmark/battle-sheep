@@ -1,6 +1,4 @@
-from typing import List
-import random
-
+from typing import List, Tuple
 from pasture import Pasture
 
 INITIAL_SHEEP = 16
@@ -70,6 +68,10 @@ class Game:
 
         self.turn += 1
 
+    def previous_turn(self):
+        self.is_humans_turn = not self.is_humans_turn
+        self.turn -= 1
+
     def is_over_for(self, human: bool) -> bool:
         for pasture in self.pastures:
             if pasture.is_taken() and pasture.is_owned_by_human() == human:
@@ -98,9 +100,6 @@ class Game:
         if pasture.is_free() and pasture.is_on_edge(self.pastures):
             pasture.update_sheep(player, INITIAL_SHEEP)
         else:
-            print('free' + str(pasture.is_free()))
-            print('edge' + str(pasture.is_on_edge(self.pastures)))
-
             raise ValueError(
                 "The given pasture is not suitable for placing sheep.")
 
@@ -135,31 +134,30 @@ class Game:
     def get_potential_initial_pastures(self) -> List[Pasture]:
         return list(filter(lambda pasture: pasture.is_free() and pasture.is_on_edge(self.pastures), self.pastures))
 
+    def get_pasture_from_position(self, position: Tuple[float, float]) -> Pasture | None:
+        for pasture in self.pastures:
+            if pasture.position == position:
+                return pasture
+        return None
+
     def make_ai_move(self, pasture: Pasture | None, target: Pasture | None, sheep: int | None):
         if pasture is not None:
             if target is None and sheep == INITIAL_SHEEP:
-                self.make_initial_turn(pasture)
+                initial_pasture = self.get_pasture_from_position(
+                    pasture.position)
+                if not initial_pasture:
+                    raise ValueError(
+                        "Pastures were not found.")
+                self.make_initial_turn(initial_pasture)
             elif target is not None and sheep is not None:
-                self.make_normal_turn(pasture, target, sheep)
-        # if self.is_in_initial_placement():
-        #     initial_pasture = random.choice(
-        #         self.get_potential_initial_pastures())
-        #     self.place_initial_sheep(initial_pasture)
-        # else:
-        #     # Haetaan mahdolliset aloituslaitumet
-        #     potential_pastures = self.get_potential_sheep_to_move()
-        #     # Valitaan paras lähtölaidun
-        #     chosen_pasture = random.choice(potential_pastures)
-        #     potential_targets = chosen_pasture.get_potential_targets(
-        #         self.pastures)
-        #     # Valitaan paras kohdelaidun
-        #     chosen_target = random.choice(potential_targets)
-        #     # Valitaan paras lampaiden määrä
-        #     chosen_target.planned_sheep = random.randrange(
-        #         1, chosen_pasture.sheep)
-        #     # Tehdään siirto
-        #     chosen_pasture.planned_sheep = chosen_pasture.sheep - chosen_target.planned_sheep
-        #     chosen_pasture.move_sheep_to(chosen_target)
+                from_pasture = self.get_pasture_from_position(
+                    pasture.position)
+                to_pasture = self.get_pasture_from_position(
+                    target.position)
+                if not from_pasture or not to_pasture:
+                    raise ValueError(
+                        "Pastures were not found.")
+                self.make_normal_turn(from_pasture, to_pasture, sheep)
 
     def calculate_winner(self) -> str:
         human_points = 0
@@ -235,9 +233,17 @@ class Game:
         self.place_initial_sheep(pasture)
         self.next_turn()
 
+    def undo_initial_move(self, pasture: Pasture) -> None:
+        pasture.reset()
+        self.previous_turn()
+
     def make_normal_turn(self, pasture: Pasture, target_pasture: Pasture, amount_of_sheep: int) -> None:
         self.click_on_pasture(pasture)
         self.click_on_pasture(target_pasture)
         self.add_sheep_to_target(amount_of_sheep)
         self.confirm_move()
-        self.next_turn()
+
+    def undo_move(self, pasture: Pasture, target_pasture: Pasture, sheep: int) -> None:
+        pasture.add_permanent_sheep(sheep)
+        target_pasture.reset()
+        self.previous_turn()

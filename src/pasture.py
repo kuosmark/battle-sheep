@@ -117,6 +117,14 @@ class Pasture:
             self.colour = BLUE_SHEEP_COLOR
         self.sheep = new_amount
 
+    def add_permanent_sheep(self, amount: int):
+        self.sheep = amount
+
+    def reset(self):
+        self.owner = None
+        self.sheep = None
+        self.colour = PASTURE_COLOR
+
     def get_all_direction_vectors(self):
         """Returns all direction vectors for a flat-topped hex grid."""
         direction_vectors = {

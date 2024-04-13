@@ -92,29 +92,31 @@ def main():
 
     # Pelin suoritus
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif not game.is_humans_turn and not game.is_over_for_ai:
+        if game.is_humans_turn:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif is_left_button_pressed(event):
+                    mouse_pos = pygame.mouse.get_pos()
+                    for pasture in game.pastures:
+                        # Etsitään valittu laidun
+                        if pasture.collide_with_point(mouse_pos):
+                            game.click_on_pasture(pasture)
+                elif is_mouse_wheel_scrolled_up(event):
+                    game.try_to_add_sheep_to_planned_move()
+                elif is_mouse_wheel_scrolled_down(event):
+                    game.try_to_subtract_sheep_from_planned_move()
+                elif is_enter_pressed(event):
+                    game.confirm_move()
+        else:
+            if not game.is_over_for_ai:
                 # Tekoälyn vuoro
                 next_pasture, next_target, sheep = calculate_ai_move(
                     game)
                 game.make_ai_move(next_pasture, next_target, sheep)
                 clock.tick(50)
-            elif is_left_button_pressed(event):
-                mouse_pos = pygame.mouse.get_pos()
-                for pasture in game.pastures:
-                    # Etsitään valittu laidun
-                    if pasture.collide_with_point(mouse_pos):
-                        game.click_on_pasture(pasture)
-            elif is_mouse_wheel_scrolled_up(event):
-                game.try_to_add_sheep_to_planned_move()
-            elif is_mouse_wheel_scrolled_down(event):
-                game.try_to_subtract_sheep_from_planned_move()
-            elif is_enter_pressed(event):
-                game.confirm_move()
 
-            render(screen, font, game)
+        render(screen, font, game)
 
     pygame.display.quit()
 
