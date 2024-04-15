@@ -7,10 +7,10 @@ from typing import List, Tuple
 import pygame
 
 PASTURE_COLOR = (163, 178, 3)  # vaalea ruoho
-RED_SHEEP_COLOR = (206, 51, 27)  # punainen
-BLUE_SHEEP_COLOR = (7, 83, 141)  # sininen
-BLACK = (0, 0, 0)  # musta
-WHITE = (255, 255, 255)  # valkoinen
+RED_SHEEP_COLOR = (206, 51, 27)
+BLUE_SHEEP_COLOR = (7, 83, 141)
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 
 
 @dataclass
@@ -112,7 +112,7 @@ class Pasture:
     def deduct_a_sheep(self):
         self.planned_sheep = self.planned_sheep - 1
 
-    def is_owned_by_human(self):
+    def is_owned_by_human(self) -> bool:
         return self.owner == 0
 
     def update_sheep(self, owner: int, new_amount: int) -> None:
@@ -123,10 +123,10 @@ class Pasture:
             self.colour = BLUE_SHEEP_COLOR
         self.sheep = new_amount
 
-    def add_permanent_sheep(self, amount: int):
+    def add_permanent_sheep(self, amount: int) -> None:
         self.sheep = amount
 
-    def reset(self):
+    def reset(self) -> None:
         self.owner = None
         self.sheep = None
         self.colour = PASTURE_COLOR

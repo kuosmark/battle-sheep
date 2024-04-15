@@ -21,7 +21,7 @@ def calculate_ai_move(game: Game):
             # Mennään syvemmälle
             minimax_value = minimax(game_copy, depth - 1)
             game_copy.undo_initial_move(pasture)
-            if (minimax_value < value):
+            if minimax_value < value:
                 best_pasture = pasture
                 best_target = None
                 best_amount = INITIAL_SHEEP
@@ -43,7 +43,7 @@ def calculate_ai_move(game: Game):
                     minimax_value = minimax(game_copy, depth - 1)
                     game_copy.undo_move(
                         pasture, target_pasture, amount_of_sheep)
-                    if (minimax_value < value):
+                    if minimax_value < value:
                         best_pasture = pasture
                         best_target = target_pasture
                         best_amount = amount_of_sheep
@@ -53,7 +53,7 @@ def calculate_ai_move(game: Game):
     return (best_pasture, best_target, best_amount)
 
 
-def minimax(game, depth: int) -> float:
+def minimax(game: Game, depth: int) -> float:
     if depth == 0:
         return game.evaluate_game_state()
 

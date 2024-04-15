@@ -24,9 +24,9 @@ class Game:
                 friendly_neighbours = pasture.get_amount_of_free_neighbours(
                     self.pastures)
                 if pasture.is_owned_by_human():
-                    # Ihmiselle yksi piste jokaisesta tyhjästä naapurilaitumesta kerrottuna lampaiden määrällä
+                    # Jokaisesta tyhjästä naapurilaitumesta piste kerrottuna lampaiden määrällä
                     value += free_neighbours_value
-                    # Ihmiselle kymmenesosapiste jokaisesta omasta naapurilaitumesta
+                    # Kymmenesosapiste jokaisesta omasta naapurilaitumesta
                     value += friendly_neighbours * 0.1
                 else:
                     value -= free_neighbours_value
@@ -66,7 +66,7 @@ class Game:
     def is_in_initial_placement(self) -> bool:
         return self.turn <= 2
 
-    def remove_targets(self):
+    def remove_targets(self) -> None:
         for pasture in self.pastures:
             pasture.targeted = False
 
@@ -76,7 +76,7 @@ class Game:
             self.target_pasture = None
             self.remove_targets()
 
-        # Tarkastetaan, onko peli ohi
+        # Tarkistetaan, onko peli ohi
         self.is_over()
         if self.is_humans_turn and not self.is_over_for_ai:
             # Pelaajan vuoro siirtyy tekoälylle, koska tekoäly ei ole hävinnyt
@@ -87,7 +87,7 @@ class Game:
 
         self.turn += 1
 
-    def previous_turn(self):
+    def previous_turn(self) -> None:
         self.is_humans_turn = not self.is_humans_turn
         self.turn -= 1
 
@@ -135,11 +135,11 @@ class Game:
             self.chosen_pasture.add_a_sheep()
             self.target_pasture.deduct_a_sheep()
 
-    def add_sheep_to_target(self, times: int):
+    def add_sheep_to_target(self, times: int) -> None:
         for _ in range(times):
             self.try_to_add_sheep_to_planned_move()
 
-    def subtract_sheep_from_target(self, times: int):
+    def subtract_sheep_from_target(self, times: int) -> None:
         for _ in range(times):
             self.try_to_subtract_sheep_from_planned_move()
 
@@ -178,7 +178,7 @@ class Game:
                         "Pastures were not found.")
                 self.make_normal_turn(from_pasture, to_pasture, sheep)
 
-    def human_has_larger_continuous_pasture(self):
+    def human_has_larger_continuous_pasture(self) -> bool:
         # Toteutus vaatii vielä parantelua
         human_friendly_neighbours = 0
         ai_friendly_neighbours = 0
@@ -191,9 +191,7 @@ class Game:
                 ai_friendly_neighbours += friendly_neighbours
         return human_friendly_neighbours > ai_friendly_neighbours
 
-    def calculate_human_won(self) -> bool | None:
-        if not self.is_over():
-            return None
+    def calculate_human_won(self) -> bool:
         human_points = 0
         ai_points = 0
         for pasture in self.pastures:
@@ -207,16 +205,15 @@ class Game:
         return human_points > ai_points
 
     def get_winner_text(self) -> str:
-        human_won = self.calculate_human_won()
-        if human_won is None:
+        if not self.is_over():
             return 'Virhe'
-        return 'Pelaaja voitti!' if human_won else 'Tietokone voitti!'
+        return 'Pelaaja voitti!' if self.calculate_human_won() else 'Tietokone voitti!'
 
-    def remove_planned_sheep(self):
+    def remove_planned_sheep(self) -> None:
         for pasture in self.pastures:
             pasture.planned_sheep = None
 
-    def click_on_pasture(self, pasture: Pasture):
+    def click_on_pasture(self, pasture: Pasture) -> None:
         if self.is_in_initial_placement():
             if pasture.is_on_edge(self.pastures) and not pasture.is_taken():
                 self.make_initial_turn(pasture)
@@ -229,11 +226,11 @@ class Game:
                     self.target_pasture = None
                 targets = pasture.get_potential_targets(
                     self.pastures)
-                for pasture in self.pastures:
-                    if pasture in targets:
-                        pasture.targeted = True
+                for p in self.pastures:
+                    if p in targets:
+                        p.targeted = True
                     else:
-                        pasture.targeted = False
+                        p.targeted = False
             elif pasture.targeted and self.chosen_pasture is not None and self.chosen_pasture.sheep is not None and pasture is not self.chosen_pasture:
                 # Jos lähtöruutu valittu, valitaan kohderuutu
                 if self.target_pasture is not None:
@@ -267,7 +264,7 @@ class Game:
                 return True
         return False
 
-    def make_initial_turn(self, pasture):
+    def make_initial_turn(self, pasture: Pasture) -> None:
         self.place_initial_sheep(pasture)
         self.next_turn()
 
