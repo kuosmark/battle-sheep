@@ -11,12 +11,11 @@ MOUSE_WHEEL_SCROLL_UP = 4
 MOUSE_WHEEL_SCROLL_DOWN = 5
 
 PASTURE_BORDER_COLOR = (90, 110, 2)  # tummempi ruoho
-HIGHLIGHTED_PASTURE_BORDER_COLOR = (0, 0, 0)  # musta
-BACKGROUND_COLOR = (255, 255, 255)  # valkoinen
+WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 
-def render(screen, font, game: Game):
+def render(screen: pygame.Surface, font: pygame.Font, game: Game):
     """Piirretään laitumet näytölle"""
 
     if game.is_over():
@@ -28,7 +27,7 @@ def render(screen, font, game: Game):
             center=(DISPLAY_SIZE[0]/2, DISPLAY_SIZE[1]/2))
         screen.blit(text, text_rect)
     else:
-        screen.fill(BACKGROUND_COLOR)
+        screen.fill(WHITE)
 
         margin = 50
         turn_text = font.render(
@@ -52,15 +51,15 @@ def render(screen, font, game: Game):
     pygame.display.flip()
 
 
-def get_event_name(event) -> str:
+def get_event_name(event: pygame.Event) -> str:
     return pygame.event.event_name(event.type)
 
 
-def is_left_button_pressed(event) -> bool:
+def is_left_button_pressed(event: pygame.Event) -> bool:
     return get_event_name(event) == 'MouseButtonDown' and event.button == LEFT_MOUSE_BUTTON
 
 
-def is_mouse_wheel_scrolled_up(event) -> bool:
+def is_mouse_wheel_scrolled_up(event: pygame.Event) -> bool:
     if get_event_name(event) == 'MouseButtonDown' and event.button == MOUSE_WHEEL_SCROLL_UP:
         return True
     if get_event_name(event) == 'KeyDown' and event.key == pygame.K_UP:
@@ -68,7 +67,7 @@ def is_mouse_wheel_scrolled_up(event) -> bool:
     return False
 
 
-def is_mouse_wheel_scrolled_down(event) -> bool:
+def is_mouse_wheel_scrolled_down(event: pygame.Event) -> bool:
     if get_event_name(event) == 'MouseButtonDown' and event.button == MOUSE_WHEEL_SCROLL_DOWN:
         return True
     if get_event_name(event) == 'KeyDown' and event.key == pygame.K_DOWN:
@@ -76,7 +75,7 @@ def is_mouse_wheel_scrolled_down(event) -> bool:
     return False
 
 
-def is_enter_pressed(event) -> bool:
+def is_enter_pressed(event: pygame.Event) -> bool:
     return get_event_name(event) == 'KeyDown' and event.key == pygame.K_RETURN
 
 
@@ -85,13 +84,12 @@ def main():
     screen = pygame.display.set_mode(DISPLAY_SIZE)
     font = pygame.font.SysFont(None, FONT_SIZE)
 
+    game = Game()
     running = True
 
-    game = Game()
-
-    # Pelin suoritus
     while running:
         if game.is_humans_turn:
+            # Pelaajan vuoro
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
