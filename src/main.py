@@ -15,7 +15,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 
-def render(screen: pygame.Surface, font: pygame.Font, game: Game):
+def render(screen, font, game: Game):
     """Piirretään laitumet näytölle"""
 
     if game.is_over():
@@ -51,15 +51,15 @@ def render(screen: pygame.Surface, font: pygame.Font, game: Game):
     pygame.display.flip()
 
 
-def get_event_name(event: pygame.Event) -> str:
+def get_event_name(event) -> str:
     return pygame.event.event_name(event.type)
 
 
-def is_left_button_pressed(event: pygame.Event) -> bool:
+def is_left_button_pressed(event) -> bool:
     return get_event_name(event) == 'MouseButtonDown' and event.button == LEFT_MOUSE_BUTTON
 
 
-def is_mouse_wheel_scrolled_up(event: pygame.Event) -> bool:
+def is_mouse_wheel_scrolled_up(event) -> bool:
     if get_event_name(event) == 'MouseButtonDown' and event.button == MOUSE_WHEEL_SCROLL_UP:
         return True
     if get_event_name(event) == 'KeyDown' and event.key == pygame.K_UP:
@@ -67,7 +67,7 @@ def is_mouse_wheel_scrolled_up(event: pygame.Event) -> bool:
     return False
 
 
-def is_mouse_wheel_scrolled_down(event: pygame.Event) -> bool:
+def is_mouse_wheel_scrolled_down(event) -> bool:
     if get_event_name(event) == 'MouseButtonDown' and event.button == MOUSE_WHEEL_SCROLL_DOWN:
         return True
     if get_event_name(event) == 'KeyDown' and event.key == pygame.K_DOWN:
@@ -75,7 +75,7 @@ def is_mouse_wheel_scrolled_down(event: pygame.Event) -> bool:
     return False
 
 
-def is_enter_pressed(event: pygame.Event) -> bool:
+def is_enter_pressed(event) -> bool:
     return get_event_name(event) == 'KeyDown' and event.key == pygame.K_RETURN
 
 
