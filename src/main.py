@@ -1,12 +1,13 @@
 import pygame
 
 from game import Game
-from minimax import calculate_ai_move
+from minimax import minimax
 
 DISPLAY_SIZE = (960, 540)
 FONT_SIZE = 48
 PASTURE_BORDER_WIDTH = 4
 LEFT_MOUSE_BUTTON = 1
+RIGHT_MOUSE_BUTTON = 3
 MOUSE_WHEEL_SCROLL_UP = 4
 MOUSE_WHEEL_SCROLL_DOWN = 5
 
@@ -75,47 +76,46 @@ def is_mouse_wheel_scrolled_down(event) -> bool:
     return False
 
 
-def is_enter_pressed(event) -> bool:
+def is_right_button_or_enter_pressed(event) -> bool:
+    """Palauttaa tosi, jos joko hiiren oikeaa painiketta tai Enter-näppäintä on painettu"""
+    if get_event_name(event) == 'MouseButtonDown' and event.button == RIGHT_MOUSE_BUTTON:
+        return True
     return get_event_name(event) == 'KeyDown' and event.key == pygame.K_RETURN
 
 
-def main():
+def init_pygame():
+    """Alustetaan Pygame"""
     pygame.init()
     screen = pygame.display.set_mode(DISPLAY_SIZE)
     font = pygame.font.SysFont(None, FONT_SIZE)
+    return screen, font
 
+
+def main():
+    screen, font = init_pygame()
     game = Game()
-    running = True
 
-    while running:
+    while True:
         if game.is_humans_turn:
             # Pelaajan vuoro
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                elif is_left_button_pressed(event):
-                    mouse_pos = pygame.mouse.get_pos()
-                    for pasture in game.pastures:
-                        # Etsitään valittu laidun
-                        if pasture.collide_with_point(mouse_pos):
-                            game.click_on_pasture(pasture)
+                if is_left_button_pressed(event):
+                    game.click(pygame.mouse.get_pos())
                 elif is_mouse_wheel_scrolled_up(event):
                     game.try_to_add_sheep_to_planned_move()
                 elif is_mouse_wheel_scrolled_down(event):
                     game.try_to_subtract_sheep_from_planned_move()
-                elif is_enter_pressed(event):
+                elif is_right_button_or_enter_pressed(event):
                     game.confirm_move()
         else:
             if not game.is_over_for_ai:
                 # Tekoälyn vuoro
                 pygame.time.wait(1000)
-                next_pasture, next_target, sheep = calculate_ai_move(
-                    game)
-                game.make_ai_move(next_pasture, next_target, sheep)
+                value, move = minimax(game, depth=2)
+                print('Valittu arvo on ' + str(value))
+                game.make_ai_move(move)
 
         render(screen, font, game)
-
-    pygame.display.quit()
 
 
 if __name__ == "__main__":
