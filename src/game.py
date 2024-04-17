@@ -70,11 +70,15 @@ class Game:
         for pasture in self.pastures:
             pasture.targeted = False
 
+    def remove_marked_pastures(self) -> None:
+        self.chosen_pasture = None
+        self.target_pasture = None
+        self.remove_planned_sheep()
+        self.remove_targets()
+
     def next_turn(self) -> None:
         if not self.is_in_initial_placement():
-            self.chosen_pasture = None
-            self.target_pasture = None
-            self.remove_targets()
+            self.remove_marked_pastures()
 
         # Tarkistetaan, onko peli ohi
         self.is_over()
@@ -282,3 +286,9 @@ class Game:
         pasture.add_permanent_sheep(sheep)
         target_pasture.reset()
         self.previous_turn()
+
+    def get_pasture_in_position(self, mouse_position: Tuple[float, float]) -> Pasture | None:
+        for pasture in self.pastures:
+            if pasture.collide_with_point(mouse_position):
+                return pasture
+        return None

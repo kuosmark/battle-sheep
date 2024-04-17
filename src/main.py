@@ -99,10 +99,11 @@ def main():
                     running = False
                 elif is_left_button_pressed(event):
                     mouse_pos = pygame.mouse.get_pos()
-                    for pasture in game.pastures:
-                        # Etsitään valittu laidun
-                        if pasture.collide_with_point(mouse_pos):
-                            game.click_on_pasture(pasture)
+                    clicked_pasture = game.get_pasture_in_position(mouse_pos)
+                    if clicked_pasture:
+                        game.click_on_pasture(clicked_pasture)
+                    else:
+                        game.remove_marked_pastures()
                 elif is_mouse_wheel_scrolled_up(event):
                     game.try_to_add_sheep_to_planned_move()
                 elif is_mouse_wheel_scrolled_down(event):
