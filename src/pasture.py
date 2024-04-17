@@ -20,7 +20,7 @@ class Pasture:
     planned_sheep: int | None = None
     owner: int | None = None
     targeted: bool = False
-    colour: Tuple[int, ...] = PASTURE_COLOR
+    color: Tuple[int, ...] = PASTURE_COLOR
     radius: float = 50
     focused = False
 
@@ -89,7 +89,7 @@ class Pasture:
 
     def render(self, screen, font) -> None:
         """Piirtää laitumen näytölle"""
-        pygame.draw.polygon(screen, self.highlight_colour, self.vertices)
+        pygame.draw.polygon(screen, self.highlight_color, self.vertices)
         if self.planned_sheep is not None:
             text_surface = font.render(
                 str(self.planned_sheep), True, BLACK)
@@ -118,9 +118,9 @@ class Pasture:
     def update_sheep(self, owner: int, new_amount: int) -> None:
         self.owner = owner
         if owner == 0:
-            self.colour = RED_SHEEP_COLOR
+            self.color = RED_SHEEP_COLOR
         elif owner == 1:
-            self.colour = BLUE_SHEEP_COLOR
+            self.color = BLUE_SHEEP_COLOR
         self.sheep = new_amount
 
     def add_permanent_sheep(self, amount: int) -> None:
@@ -129,7 +129,7 @@ class Pasture:
     def reset(self) -> None:
         self.owner = None
         self.sheep = None
-        self.colour = PASTURE_COLOR
+        self.color = PASTURE_COLOR
 
     def get_all_direction_vectors(self):
         """Returns all direction vectors for a flat-topped hex grid."""
@@ -205,10 +205,10 @@ class Pasture:
         return self.radius * math.cos(math.radians(30))
 
     @property
-    def highlight_colour(self) -> Tuple[int, ...]:
-        """Colour of the pasture tile when rendering highlight"""
+    def highlight_color(self) -> Tuple[int, ...]:
+        """color of the pasture tile when rendering highlight"""
         offset = 60 if self.focused else 0
 
         def brighten(x, y):
             return x + y if x + y < 255 else 255
-        return tuple(brighten(x, offset) for x in self.colour)
+        return tuple(brighten(x, offset) for x in self.color)

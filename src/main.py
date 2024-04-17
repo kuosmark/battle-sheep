@@ -1,7 +1,7 @@
 import pygame
 
 from game import Game
-from minimax import calculate_ai_move
+from minimax import minimax
 
 DISPLAY_SIZE = (960, 540)
 FONT_SIZE = 48
@@ -83,27 +83,24 @@ def is_right_button_or_enter_pressed(event) -> bool:
     return get_event_name(event) == 'KeyDown' and event.key == pygame.K_RETURN
 
 
-def main():
+def init_pygame():
+    """Alustetaan Pygame"""
     pygame.init()
     screen = pygame.display.set_mode(DISPLAY_SIZE)
     font = pygame.font.SysFont(None, FONT_SIZE)
+    return screen, font
 
+
+def main():
+    screen, font = init_pygame()
     game = Game()
-    running = True
 
-    while running:
+    while True:
         if game.is_humans_turn:
             # Pelaajan vuoro
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                elif is_left_button_pressed(event):
-                    mouse_pos = pygame.mouse.get_pos()
-                    clicked_pasture = game.get_pasture_in_position(mouse_pos)
-                    if clicked_pasture:
-                        game.click_on_pasture(clicked_pasture)
-                    else:
-                        game.remove_marked_pastures()
+                if is_left_button_pressed(event):
+                    game.click(pygame.mouse.get_pos())
                 elif is_mouse_wheel_scrolled_up(event):
                     game.try_to_add_sheep_to_planned_move()
                 elif is_mouse_wheel_scrolled_down(event):
@@ -114,13 +111,11 @@ def main():
             if not game.is_over_for_ai:
                 # Tekoälyn vuoro
                 pygame.time.wait(1000)
-                next_pasture, next_target, sheep = calculate_ai_move(
-                    game)
-                game.make_ai_move(next_pasture, next_target, sheep)
+                value, move = minimax(game, depth=2)
+                print('Valittu arvo on ' + str(value))
+                game.make_ai_move(move)
 
         render(screen, font, game)
-
-    pygame.display.quit()
 
 
 if __name__ == "__main__":

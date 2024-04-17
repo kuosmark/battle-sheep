@@ -1,4 +1,5 @@
 from typing import List, Tuple
+from move import Move
 from pasture import Pasture
 
 INITIAL_SHEEP = 16
@@ -163,24 +164,24 @@ class Game:
                 return pasture
         return None
 
-    def make_ai_move(self, pasture: Pasture | None, target: Pasture | None, sheep: int | None):
-        if pasture is not None:
-            if target is None and sheep == INITIAL_SHEEP:
+    def make_ai_move(self, move: Move):
+        if move.pasture is not None:
+            if move.target is None and move.sheep == INITIAL_SHEEP:
                 initial_pasture = self.get_pasture_from_position(
-                    pasture.position)
+                    move.pasture.position)
                 if not initial_pasture:
                     raise ValueError(
                         "Pastures were not found.")
                 self.make_initial_turn(initial_pasture)
-            elif target is not None and sheep is not None:
+            elif move.target is not None and move.sheep is not None:
                 from_pasture = self.get_pasture_from_position(
-                    pasture.position)
+                    move.pasture.position)
                 to_pasture = self.get_pasture_from_position(
-                    target.position)
+                    move.target.position)
                 if not from_pasture or not to_pasture:
                     raise ValueError(
                         "Pastures were not found.")
-                self.make_normal_turn(from_pasture, to_pasture, sheep)
+                self.make_normal_turn(from_pasture, to_pasture, move.sheep)
 
     def human_has_larger_continuous_pasture(self) -> bool:
         # Toteutus vaatii vielä parantelua
@@ -242,6 +243,8 @@ class Game:
                 self.target_pasture = pasture
                 pasture.planned_sheep = 1
                 self.chosen_pasture.planned_sheep = self.chosen_pasture.sheep - 1
+            else:
+                self.remove_marked_pastures()
 
     def confirm_move(self):
         if self.target_pasture is not None and self.target_pasture.planned_sheep > 0 and self.chosen_pasture is not None and self.chosen_pasture.planned_sheep > 0:
@@ -292,3 +295,10 @@ class Game:
             if pasture.collide_with_point(mouse_position):
                 return pasture
         return None
+
+    def click(self, position: Tuple[float, float]) -> None:
+        clicked_pasture = self.get_pasture_in_position(position)
+        if clicked_pasture:
+            self.click_on_pasture(clicked_pasture)
+        else:
+            self.remove_marked_pastures()
