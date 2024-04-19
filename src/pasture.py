@@ -82,6 +82,9 @@ class Pasture:
     def get_friendly_neighbours(self, pastures: List[Pasture]) -> List[Pasture]:
         return list(filter(lambda neighbour: neighbour.owner == self.owner, self.get_free_neighbours(pastures)))
 
+    def get_amount_of_friendly_neighbours(self, pastures: List[Pasture]) -> int:
+        return len(self.get_friendly_neighbours(pastures))
+
     def is_surrounded(self, pastures: List[Pasture]) -> bool:
         """Palauttaa, onko laidun ympäröity vallatuilla laitumilla"""
         free_neighbours = self.get_free_neighbours(pastures)

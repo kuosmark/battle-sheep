@@ -16,22 +16,35 @@ class Game:
         self.is_over_for_human = False
 
     def evaluate_game_state(self) -> float:
+        # Palautetaan paras tai huonoin mahdollinen arvo voittajan mukaan, mikäli peli on ohi
+        if self.is_over():
+            if self.calculate_human_won():
+                return float('Inf')
+            return float('-Inf')
+
         value: float = 0
         for pasture in self.pastures:
             if pasture.is_taken():
+                sheep = pasture.get_amount_of_sheep()
+                is_pasture_surrounded = pasture.is_surrounded(self.pastures)
                 free_neighbours = pasture.get_amount_of_free_neighbours(
                     self.pastures)
-                free_neighbours_value = free_neighbours * pasture.get_amount_of_sheep()
-                friendly_neighbours = pasture.get_amount_of_free_neighbours(
+                free_neighbours_value = free_neighbours * sheep
+                friendly_neighbours = pasture.get_amount_of_friendly_neighbours(
                     self.pastures)
                 if pasture.is_owned_by_human():
                     # Jokaisesta tyhjästä naapurilaitumesta piste kerrottuna lampaiden määrällä
                     value += free_neighbours_value
                     # Kymmenesosapiste jokaisesta omasta naapurilaitumesta
                     value += friendly_neighbours * 0.1
+                    if is_pasture_surrounded:
+                        # Jokaisesta ansaan jääneestä lampaasta miinuspiste
+                        value -= sheep
                 else:
                     value -= free_neighbours_value
                     value -= friendly_neighbours * 0.01
+                    if is_pasture_surrounded:
+                        value += sheep
         print('Pelitilanteen arvo on ' + str(value))
         return value
 
