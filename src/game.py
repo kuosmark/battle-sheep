@@ -22,7 +22,7 @@ class Game:
                 free_neighbours = pasture.get_amount_of_free_neighbours(
                     self.pastures)
                 free_neighbours_value = free_neighbours * pasture.get_amount_of_sheep()
-                friendly_neighbours = pasture.get_amount_of_free_neighbours(
+                friendly_neighbours = pasture.get_amount_of_friendly_neighbours(
                     self.pastures)
                 if pasture.is_owned_by_human():
                     # Jokaisesta tyhjästä naapurilaitumesta piste kerrottuna lampaiden määrällä
