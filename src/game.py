@@ -16,6 +16,12 @@ class Game:
         self.is_over_for_human = False
 
     def evaluate_game_state(self) -> float:
+        # Palautetaan paras tai huonoin mahdollinen arvo voittajan mukaan, mikäli peli on ohi
+        if self.is_over():
+            if self.calculate_human_won():
+                return float('Inf')
+            return float('-Inf')
+
         value: float = 0
         for pasture in self.pastures:
             if pasture.is_taken():
