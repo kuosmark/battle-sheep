@@ -6,7 +6,8 @@ INITIAL_SHEEP = 16
 
 
 def minimax(game: Game, depth: int):
-    if depth == 0:
+    # Palautetaan pelitilanteen arvo, mikäli peli on ohi tai päästiin annettuun syvyyteen
+    if depth == 0 or game.is_over():
         return game.evaluate_game_state(), None
 
     # Pelaaja tahtoo maksimoida arvon, tekoäly tahtoo minimoida sen
