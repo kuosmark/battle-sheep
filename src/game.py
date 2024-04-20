@@ -61,9 +61,12 @@ class Game:
             # Peli ei ole vielä ohi, joten sama pelaaja jatkaa
             self.turn += 1
 
-    # Tämä ei toimi jos toinen pelaaja on jo hävinnyt
     def previous_turn(self) -> None:
-        self.is_humans_turn = not self.is_humans_turn
+        if self.is_humans_turn and not self.is_over_for_ai():
+            self.is_humans_turn = False
+        elif not self.is_humans_turn and not self.is_over_for_player():
+            # Tekoälyn vuoro siirtyy pelaajalle, joka ei ole vielä hävinnyt
+            self.is_humans_turn = True
         self.turn -= 1
 
     # Muuttujien nollaus
