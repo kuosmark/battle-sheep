@@ -61,9 +61,12 @@ class Game:
             # Peli ei ole vielä ohi, joten sama pelaaja jatkaa
             self.turn += 1
 
-    # Tämä ei toimi jos toinen pelaaja on jo hävinnyt
     def previous_turn(self) -> None:
-        self.is_humans_turn = not self.is_humans_turn
+        if self.is_humans_turn and not self.is_over_for_ai():
+            self.is_humans_turn = False
+        elif not self.is_humans_turn and not self.is_over_for_player():
+            # Tekoälyn vuoro siirtyy pelaajalle, joka ei ole vielä hävinnyt
+            self.is_humans_turn = True
         self.turn -= 1
 
     # Muuttujien nollaus
@@ -173,25 +176,23 @@ class Game:
             raise ValueError(
                 "The given pasture is not suitable for placing sheep.")
 
-    def try_to_add_sheep_to_planned_move(self, amount: int):
-        if self.chosen_pasture is None or self.target_pasture is None:
-            raise SystemError('Pasture and/or target not set')
+    def try_to_add_sheep_to_planned_move(self):
+        if self.are_pastures_chosen() and self.chosen_pasture.planned_sheep >= 2:
+            self.chosen_pasture.deduct_a_sheep()
+            self.target_pasture.add_a_sheep()
 
-        chosen_planned_sheep = self.chosen_pasture.get_amount_of_planned_sheep()
-        target_planned_sheep = self.target_pasture.get_amount_of_planned_sheep()
-        if chosen_planned_sheep - amount >= 1 or target_planned_sheep + amount < INITIAL_SHEEP:
-            self.chosen_pasture.subtract_planned_sheep(amount)
-            self.target_pasture.add_planned_sheep(amount)
+    def add_sheep_to_target(self, amount: int) -> None:
+        for _ in range(amount):
+            self.try_to_add_sheep_to_planned_move()
 
-    def try_to_subtract_sheep_from_planned_move(self, amount: int):
-        if self.chosen_pasture is None or self.target_pasture is None:
-            raise SystemError('Pasture and/or target not set')
+    def try_to_subtract_sheep_from_planned_move(self):
+        if self.are_pastures_chosen() and self.target_pasture.planned_sheep >= 2:
+            self.chosen_pasture.add_a_sheep()
+            self.target_pasture.deduct_a_sheep()
 
-        chosen_planned_sheep = self.chosen_pasture.get_amount_of_planned_sheep()
-        target_planned_sheep = self.target_pasture.get_amount_of_planned_sheep()
-        if chosen_planned_sheep + amount < INITIAL_SHEEP and target_planned_sheep - amount >= 1:
-            self.target_pasture.subtract_planned_sheep(amount)
-            self.chosen_pasture.add_planned_sheep(amount)
+    def subtract_sheep_from_target(self, amount: int) -> None:
+        for _ in range(amount):
+            self.try_to_subtract_sheep_from_planned_move()
 
     def click(self, position: Tuple[float, float]) -> None:
         clicked_pasture = self.get_pasture_in_position(position)
@@ -265,7 +266,7 @@ class Game:
     def make_normal_turn(self, pasture: Pasture, target_pasture: Pasture, amount_of_sheep: int) -> None:
         self.click_on_pasture(pasture)
         self.click_on_pasture(target_pasture)
-        self.try_to_add_sheep_to_planned_move(amount_of_sheep)
+        self.add_sheep_to_target(amount_of_sheep)
         self.confirm_move()
 
     def undo_move(self, pasture: Pasture, target_pasture: Pasture, sheep: int) -> None:

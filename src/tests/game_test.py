@@ -15,12 +15,10 @@ class TestGame(unittest.TestCase):
         return self.game.get_potential_initial_pastures()[0]
 
     def add_sheep_to_target_one_by_one(self, amount):
-        for _ in range(amount):
-            self.game.try_to_add_sheep_to_planned_move(1)
+        self.game.add_sheep_to_target(amount)
 
     def subtract_sheep_from_target_one_by_one(self, amount):
-        for _ in range(amount):
-            self.game.try_to_subtract_sheep_from_planned_move(1)
+        self.game.subtract_sheep_from_target(amount)
 
     def play_initial_turn_and_get_initial_pasture(self) -> Pasture:
         initial_pasture = self.get_free_edge_pasture()

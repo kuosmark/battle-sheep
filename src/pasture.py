@@ -83,17 +83,23 @@ class Pasture:
     def get_amount_of_planned_sheep(self) -> int:
         return self.planned_sheep if self.planned_sheep is not None else 0
 
-    def add_planned_sheep(self, amount: int):
-        planned_sheep = self.get_amount_of_planned_sheep() + amount
-        if planned_sheep > MAX_SHEEP:
-            raise ValueError('Invalid amount of sheep planned')
-        self.planned_sheep = planned_sheep
+    def add_a_sheep(self):
+        self.planned_sheep = self.planned_sheep + 1
 
-    def subtract_planned_sheep(self, amount: int):
-        planned_sheep = self.get_amount_of_planned_sheep() - amount
-        if planned_sheep < MIN_SHEEP:
-            raise ValueError('Invalid amount of sheep planned')
-        self.planned_sheep = planned_sheep
+    # def add_planned_sheep(self, amount: int):
+    #     planned_sheep = self.get_amount_of_planned_sheep() + amount
+    #     if planned_sheep > MAX_SHEEP:
+    #         raise ValueError('Invalid amount of sheep planned')
+    #     self.planned_sheep = planned_sheep
+
+    # def subtract_planned_sheep(self, amount: int):
+    #     planned_sheep = self.get_amount_of_planned_sheep() - amount
+    #     if planned_sheep < MIN_SHEEP:
+    #         raise ValueError('Invalid amount of sheep planned')
+    #     self.planned_sheep = planned_sheep
+
+    def deduct_a_sheep(self):
+        self.planned_sheep = self.planned_sheep - 1
 
     def update_sheep(self, occupier: int, new_amount: int) -> None:
         self.occupier = occupier
