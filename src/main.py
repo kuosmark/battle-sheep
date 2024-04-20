@@ -107,7 +107,7 @@ def main():
                     game.try_to_subtract_sheep_from_planned_move()
                 elif is_right_button_or_enter_pressed(event):
                     game.confirm_move()
-        else:
+        elif not game.is_over_for_ai():
             # Tekoälyn vuoro
             pygame.time.wait(1000)
             value, move = minimax(game, depth=2)
