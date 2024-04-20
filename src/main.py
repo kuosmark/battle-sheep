@@ -102,18 +102,17 @@ def main():
                 if is_left_button_pressed(event):
                     game.click(pygame.mouse.get_pos())
                 elif is_mouse_wheel_scrolled_up(event):
-                    game.try_to_add_sheep_to_planned_move()
+                    game.try_to_add_sheep_to_planned_move(1)
                 elif is_mouse_wheel_scrolled_down(event):
-                    game.try_to_subtract_sheep_from_planned_move()
+                    game.try_to_subtract_sheep_from_planned_move(1)
                 elif is_right_button_or_enter_pressed(event):
                     game.confirm_move()
         else:
-            if not game.is_over_for_ai:
-                # Tekoälyn vuoro
-                pygame.time.wait(1000)
-                value, move = minimax(game, depth=2)
-                print('Valittu arvo on ' + str(value))
-                game.make_ai_move(move)
+            # Tekoälyn vuoro
+            pygame.time.wait(1000)
+            value, move = minimax(game, depth=2)
+            print('Valittu arvo on ' + str(value))
+            game.make_ai_move(move)
 
         render(screen, font, game)
 
