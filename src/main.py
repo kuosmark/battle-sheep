@@ -18,7 +18,6 @@ BLACK = (0, 0, 0)
 
 def render(screen, font, game: Game):
     """Piirretään laitumet näytölle"""
-
     if game.is_over():
         screen.fill(BLACK)
         winner = game.get_winner_text()
@@ -107,12 +106,13 @@ def main():
                     game.try_to_subtract_sheep_from_planned_move()
                 elif is_right_button_or_enter_pressed(event):
                     game.confirm_move()
-        elif not game.is_over_for_ai():
+        elif not game.is_humans_turn and not game.is_over_for_ai():
             # Tekoälyn vuoro
             pygame.time.wait(1000)
-            value, move = minimax(game, depth=2)
+            value, new_game_state = minimax(game, 2)
+            # game, depth=2, alpha=float('-Inf'), beta=float('Inf'))
             print('Valittu arvo on ' + str(value))
-            game.make_ai_move(move)
+            game = new_game_state
 
         render(screen, font, game)
 

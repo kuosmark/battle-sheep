@@ -3,6 +3,7 @@ from move import Move
 from pasture import Pasture
 
 INITIAL_SHEEP = 16
+PASTURE_RADIUS = 50
 
 
 class Game:
@@ -32,10 +33,10 @@ class Game:
                 (x, y) = pasture.position
                 # Piirretään joka toinen laidun ylä- ja joka toinen alaviistoon edellisestä
                 if x_axis % 2 == 1:
-                    position = (x + pasture.radius * 3 / 2,
+                    position = (x + PASTURE_RADIUS * 3 / 2,
                                 y - pasture.minimal_radius)
                 else:
-                    position = (x + pasture.radius * 3 / 2,
+                    position = (x + PASTURE_RADIUS * 3 / 2,
                                 y + pasture.minimal_radius)
                 pasture = Pasture(position)
                 pastures.append(pasture)
@@ -48,26 +49,31 @@ class Game:
         return self.turn <= 2
 
     def next_turn(self) -> None:
-        self.remove_marked_pastures()
         if self.is_humans_turn and not self.is_over_for_ai():
             # Pelaajan vuoro siirtyy tekoälylle, joka ei ole vielä hävinnyt
             self.is_humans_turn = False
-            self.turn += 1
         elif not self.is_humans_turn and not self.is_over_for_player():
             # Tekoälyn vuoro siirtyy pelaajalle, joka ei ole vielä hävinnyt
             self.is_humans_turn = True
-            self.turn += 1
-        elif not self.is_over():
-            # Peli ei ole vielä ohi, joten sama pelaaja jatkaa
-            self.turn += 1
+
+        self.turn += 1
+        self.remove_marked_pastures()
 
     def previous_turn(self) -> None:
-        if self.is_humans_turn and not self.is_over_for_ai():
-            self.is_humans_turn = False
-        elif not self.is_humans_turn and not self.is_over_for_player():
-            # Tekoälyn vuoro siirtyy pelaajalle, joka ei ole vielä hävinnyt
-            self.is_humans_turn = True
+        # if self.is_humans_turn and not self.is_over_for_ai():
+        #     self.is_humans_turn = False
+        # elif not self.is_humans_turn and not self.is_over_for_player():
+        #     # Tekoälyn vuoro siirtyy pelaajalle, joka ei ole vielä hävinnyt
+        #     self.is_humans_turn = True
         self.turn -= 1
+        if self.is_in_initial_placement():
+            self.is_humans_turn = not self.is_humans_turn
+        else:
+            if self.is_over_for_player():
+                self.is_humans_turn = False
+            else:
+                self.is_humans_turn = not self.is_humans_turn
+        self.remove_marked_pastures()
 
     # Muuttujien nollaus
 
@@ -230,30 +236,30 @@ class Game:
                 self.remove_marked_pastures()
 
     def confirm_move(self):
-        if self.target_pasture is not None and self.target_pasture.planned_sheep > 0 and self.chosen_pasture is not None and self.chosen_pasture.planned_sheep > 0:
+        if self.target_pasture is not None and self.target_pasture.get_amount_of_planned_sheep() > 0 and self.chosen_pasture is not None and self.chosen_pasture.get_amount_of_planned_sheep() > 0:
             self.chosen_pasture.move_sheep_to(self.target_pasture)
             self.next_turn()
 
     # Tekoälyn siirto
 
-    def make_ai_move(self, move: Move):
-        if move.pasture is not None:
-            if move.is_initial():
-                initial_pasture = self.get_pasture_in_exact_position(
-                    move.pasture.position)
-                if not initial_pasture:
-                    raise ValueError(
-                        "Pastures were not found.")
-                self.make_initial_turn(initial_pasture)
-            elif move.target is not None and move.sheep is not None:
-                from_pasture = self.get_pasture_in_exact_position(
-                    move.pasture.position)
-                to_pasture = self.get_pasture_in_exact_position(
-                    move.target.position)
-                if not from_pasture or not to_pasture:
-                    raise ValueError(
-                        "Pastures were not found.")
-                self.make_normal_turn(from_pasture, to_pasture, move.sheep)
+    # def make_ai_move(self, move: Move):
+    #     if move.pasture is not None:
+    #         if move.is_initial():
+    #             initial_pasture = self.get_pasture_in_exact_position(
+    #                 move.pasture.position)
+    #             if not initial_pasture:
+    #                 raise ValueError(
+    #                     "Pastures were not found.")
+    #             self.make_initial_turn(initial_pasture)
+    #         elif move.target is not None and move.sheep is not None:
+    #             from_pasture = self.get_pasture_in_exact_position(
+    #                 move.pasture.position)
+    #             to_pasture = self.get_pasture_in_exact_position(
+    #                 move.target.position)
+    #             if not from_pasture or not to_pasture:
+    #                 raise ValueError(
+    #                     "Pastures were not found.")
+    #             self.make_normal_turn(from_pasture, to_pasture, move.sheep)
 
     def make_initial_turn(self, pasture: Pasture) -> None:
         self.place_initial_sheep(pasture)
@@ -263,16 +269,19 @@ class Game:
         pasture.reset()
         self.previous_turn()
 
-    def make_normal_turn(self, pasture: Pasture, target_pasture: Pasture, amount_of_sheep: int) -> None:
-        self.click_on_pasture(pasture)
-        self.click_on_pasture(target_pasture)
-        self.add_sheep_to_target(amount_of_sheep)
-        self.confirm_move()
+    def make_normal_turn(self, pasture: Pasture, target: Pasture, sheep: int) -> None:
+        # self.click_on_pasture(pasture)
+        # self.click_on_pasture(target_pasture)
+        # self.add_sheep_to_target(sheep)
+        # self.confirm_move()
+        pasture.move_amount_of_sheep_to(target, sheep)
+        self.next_turn()
 
     def undo_move(self, pasture: Pasture, target_pasture: Pasture, sheep: int) -> None:
         if pasture.occupier is None:
             raise ValueError('Pasture occupier not found')
-        pasture.update_sheep(pasture.occupier, sheep)
+        pasture.update_sheep(
+            pasture.occupier, pasture.get_amount_of_sheep() + sheep)
         target_pasture.reset()
         self.previous_turn()
 
