@@ -1,5 +1,4 @@
 from typing import List, Tuple
-from move import Move
 from pasture import Pasture
 
 INITIAL_SHEEP = 16
@@ -239,27 +238,6 @@ class Game:
         if self.target_pasture is not None and self.target_pasture.get_amount_of_planned_sheep() > 0 and self.chosen_pasture is not None and self.chosen_pasture.get_amount_of_planned_sheep() > 0:
             self.chosen_pasture.move_sheep_to(self.target_pasture)
             self.next_turn()
-
-    # Tekoälyn siirto
-
-    # def make_ai_move(self, move: Move):
-    #     if move.pasture is not None:
-    #         if move.is_initial():
-    #             initial_pasture = self.get_pasture_in_exact_position(
-    #                 move.pasture.position)
-    #             if not initial_pasture:
-    #                 raise ValueError(
-    #                     "Pastures were not found.")
-    #             self.make_initial_turn(initial_pasture)
-    #         elif move.target is not None and move.sheep is not None:
-    #             from_pasture = self.get_pasture_in_exact_position(
-    #                 move.pasture.position)
-    #             to_pasture = self.get_pasture_in_exact_position(
-    #                 move.target.position)
-    #             if not from_pasture or not to_pasture:
-    #                 raise ValueError(
-    #                     "Pastures were not found.")
-    #             self.make_normal_turn(from_pasture, to_pasture, move.sheep)
 
     def make_initial_turn(self, pasture: Pasture) -> None:
         self.place_initial_sheep(pasture)
