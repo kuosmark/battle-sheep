@@ -13,6 +13,9 @@ class Game:
         self.chosen_pasture: Pasture | None = None
         self.target_pasture: Pasture | None = None
 
+    def __str__(self):
+        return f'Peli, jossa vuoro on {self.turn} ja {'pelaajan' if self.is_humans_turn else 'tekoälyn'} siirto. Arvoltaan {self.evaluate_game_state()}'
+
     def init_pastures(self) -> List[Pasture]:
         """Luodaan heksagonilaitumista pelilauta"""
         x_length = 8
@@ -295,7 +298,6 @@ class Game:
                     value -= friendly_neighbours * 0.01
                     if is_pasture_surrounded:
                         value += sheep
-        print('Pelitilanteen arvo on ' + str(value))
         return value
 
     def human_has_larger_continuous_pasture(self) -> bool:

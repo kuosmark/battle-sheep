@@ -1,3 +1,5 @@
+import time
+
 import pygame
 
 from game import Game
@@ -109,9 +111,15 @@ def main():
         elif not game.is_humans_turn and not game.is_over_for_ai():
             # Tekoälyn vuoro
             pygame.time.wait(1000)
-            value, new_game_state = minimax(
-                game, 2, alpha=float('-Inf'), beta=float('Inf'))
-            print('Valittu arvo on ' + str(value))
+            start_time = time.time()
+            new_game_state = minimax(
+                game, 3, alpha=float('-Inf'), beta=float('Inf'))
+            # Lasketaan siirtoon kulunut aika
+            elapsed_time = time.time() - start_time
+            _, new_game_state = minimax(
+                game, 3, alpha=float('-Inf'), beta=float('Inf'))
+            print(f"Siirron laskemiseen kului {elapsed_time:.2f} seconds")
+            print('Valittu siirto on ' + str(new_game_state))
             game = new_game_state
 
         render(screen, font, game)
