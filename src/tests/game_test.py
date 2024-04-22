@@ -1,10 +1,7 @@
 import unittest
+from constants import INITIAL_SHEEP, MAX_SHEEP_TO_MOVE, MIN_SHEEP_TO_MOVE
 from game import Game
 from pasture import Pasture
-
-INITIAL_SHEEP = 16
-MIN_SHEEP_TO_MOVE = 1
-MAX_SHEEP_TO_MOVE = 15
 
 
 class TestGame(unittest.TestCase):

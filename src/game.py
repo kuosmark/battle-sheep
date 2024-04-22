@@ -1,8 +1,6 @@
 from typing import List, Tuple
+from constants import INITIAL_SHEEP, MINIMAL_RADIUS, PASTURE_RADIUS
 from pasture import Pasture
-
-INITIAL_SHEEP = 16
-PASTURE_RADIUS = 50
 
 
 class Game:
@@ -36,19 +34,43 @@ class Game:
                 # Piirretään joka toinen laidun ylä- ja joka toinen alaviistoon edellisestä
                 if x_axis % 2 == 1:
                     position = (x + PASTURE_RADIUS * 3 / 2,
-                                y - pasture.minimal_radius)
+                                y - MINIMAL_RADIUS)
                 else:
                     position = (x + PASTURE_RADIUS * 3 / 2,
-                                y + pasture.minimal_radius)
+                                y + MINIMAL_RADIUS)
                 pasture = Pasture(position)
                 pastures.append(pasture)
 
         return pastures
 
+    # Syötteet
+
+    def click(self, mouse_position: Tuple[float, float]) -> None:
+        clicked_pasture = self.get_pasture_in_position(mouse_position)
+        if clicked_pasture:
+            self.click_on_pasture(clicked_pasture)
+        else:
+            self.remove_marked_pastures()
+
+    def scroll_up(self) -> None:
+        self.add_sheep_to_planned_move()
+
+    def scroll_down(self) -> None:
+        self.subtract_sheep_from_planned_move()
+
+    def press_enter(self) -> None:
+        self.confirm_move()
+
     # Vuorot
 
     def is_in_initial_placement(self) -> bool:
         return self.turn <= 2
+
+    def is_players_turn(self) -> bool:
+        return self.is_humans_turn
+
+    def is_computers_turn(self) -> bool:
+        return not self.is_humans_turn and not self.is_over_for_ai()
 
     def next_turn(self) -> None:
         if self.is_humans_turn and not self.is_over_for_ai():
@@ -62,11 +84,6 @@ class Game:
         self.remove_marked_pastures()
 
     def previous_turn(self) -> None:
-        # if self.is_humans_turn and not self.is_over_for_ai():
-        #     self.is_humans_turn = False
-        # elif not self.is_humans_turn and not self.is_over_for_player():
-        #     # Tekoälyn vuoro siirtyy pelaajalle, joka ei ole vielä hävinnyt
-        #     self.is_humans_turn = True
         self.turn -= 1
         if self.is_in_initial_placement():
             self.is_humans_turn = not self.is_humans_turn
@@ -161,6 +178,10 @@ class Game:
                 return True
         return False
 
+    def adjust_focus(self, pasture: Pasture, mouse_position: Tuple[float, float]):
+        is_pointed_at = pasture.collide_with_point(mouse_position)
+        pasture.focused = self.should_be_focused(pasture, is_pointed_at)
+
     # Mahdolliset siirrot
 
     def sheep_can_be_moved(self, pasture: Pasture) -> bool:
@@ -184,30 +205,23 @@ class Game:
             raise ValueError(
                 "The given pasture is not suitable for placing sheep.")
 
-    def try_to_add_sheep_to_planned_move(self):
+    def add_sheep_to_planned_move(self):
         if self.are_pastures_chosen() and self.chosen_pasture.planned_sheep >= 2:
             self.chosen_pasture.deduct_a_sheep()
             self.target_pasture.add_a_sheep()
 
     def add_sheep_to_target(self, amount: int) -> None:
         for _ in range(amount):
-            self.try_to_add_sheep_to_planned_move()
+            self.add_sheep_to_planned_move()
 
-    def try_to_subtract_sheep_from_planned_move(self):
+    def subtract_sheep_from_planned_move(self):
         if self.are_pastures_chosen() and self.target_pasture.planned_sheep >= 2:
             self.chosen_pasture.add_a_sheep()
             self.target_pasture.deduct_a_sheep()
 
     def subtract_sheep_from_target(self, amount: int) -> None:
         for _ in range(amount):
-            self.try_to_subtract_sheep_from_planned_move()
-
-    def click(self, position: Tuple[float, float]) -> None:
-        clicked_pasture = self.get_pasture_in_position(position)
-        if clicked_pasture:
-            self.click_on_pasture(clicked_pasture)
-        else:
-            self.remove_marked_pastures()
+            self.subtract_sheep_from_planned_move()
 
     def click_on_pasture(self, pasture: Pasture) -> None:
         if self.is_in_initial_placement():
@@ -251,10 +265,6 @@ class Game:
         self.previous_turn()
 
     def make_normal_turn(self, pasture: Pasture, target: Pasture, sheep: int) -> None:
-        # self.click_on_pasture(pasture)
-        # self.click_on_pasture(target_pasture)
-        # self.add_sheep_to_target(sheep)
-        # self.confirm_move()
         pasture.move_amount_of_sheep_to(target, sheep)
         self.next_turn()
 
@@ -324,7 +334,12 @@ class Game:
             return self.human_has_larger_continuous_pasture()
         return human_points > ai_points
 
-    def get_winner_text(self) -> str:
-        if not self.is_over():
-            return 'Virhe'
-        return 'Pelaaja voitti!' if self.calculate_human_won() else 'Tekoäly voitti!'
+    def get_info_text(self) -> str:
+        if self.is_over():
+            if self.calculate_human_won():
+                return 'Pelaaja voitti!'
+            else:
+                return 'Tekoäly voitti!'
+        if self.is_players_turn():
+            return 'Pelaajan vuoro'
+        return 'Tekoälyn vuoro'
