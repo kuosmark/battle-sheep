@@ -109,8 +109,8 @@ def main():
         elif not game.is_humans_turn and not game.is_over_for_ai():
             # Tekoälyn vuoro
             pygame.time.wait(1000)
-            value, new_game_state = minimax(game, 2)
-            # game, depth=2, alpha=float('-Inf'), beta=float('Inf'))
+            value, new_game_state = minimax(
+                game, 2, alpha=float('-Inf'), beta=float('Inf'))
             print('Valittu arvo on ' + str(value))
             game = new_game_state
 

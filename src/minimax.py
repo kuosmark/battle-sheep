@@ -24,7 +24,7 @@ def get_possible_moves(game: Game) -> List[Game]:
         return possible_moves
 
 
-def minimax(game: Game, depth: int) -> Tuple[float, Game | None]:
+def minimax(game: Game, depth: int, alpha: float, beta: float) -> Tuple[float, Game | None]:
     # Palautetaan pelitilanteen arvo, mikäli peli on ohi tai päästiin annettuun syvyyteen
     if depth == 0 or game.is_over_for_ai():
         return game.evaluate_game_state(), None
@@ -35,18 +35,26 @@ def minimax(game: Game, depth: int) -> Tuple[float, Game | None]:
     best_move: Game | None = None
 
     if game.is_humans_turn:
-        max_value = float('-Inf')
+        best_value = float('-Inf')
         for move in possible_moves:
-            value, _ = minimax(move, depth - 1)
-            if value > max_value:
-                max_value = value
+            value, _ = minimax(move, depth - 1, alpha, beta)
+            if value > best_value:
+                best_value = value
                 best_move = move
-        return max_value, best_move
+
+            if best_value > beta:
+                break
+            alpha = max(alpha, best_value)
     else:
-        min_value = float('Inf')
+        best_value = float('Inf')
         for move in possible_moves:
-            value, _ = minimax(move, depth - 1)
-            if value < min_value:
-                min_value = value
+            value, _ = minimax(move, depth - 1, alpha, beta)
+            if value < best_value:
+                best_value = value
                 best_move = move
-        return min_value, best_move
+
+            if best_value < alpha:
+                break
+            beta = min(beta, best_value)
+
+    return best_value, best_move
