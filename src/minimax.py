@@ -26,7 +26,7 @@ def get_possible_moves(game: Game) -> List[Game]:
 
 def minimax(game: Game, depth: int) -> Tuple[float, Game | None]:
     # Palautetaan pelitilanteen arvo, mikäli peli on ohi tai päästiin annettuun syvyyteen
-    if depth == 0 or game.is_over():
+    if depth == 0 or game.is_over_for_ai():
         return game.evaluate_game_state(), None
 
     possible_moves = get_possible_moves(game)
