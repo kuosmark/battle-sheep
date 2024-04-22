@@ -20,35 +20,30 @@ BLACK = (0, 0, 0)
 
 def render(screen, font, game: Game):
     """Piirretään laitumet näytölle"""
-    if game.is_over():
-        screen.fill(BLACK)
-        winner = game.get_winner_text()
-        text = font.render(
-            f'{winner}', True, 'white')
-        text_rect = text.get_rect(
-            center=(DISPLAY_SIZE[0]/2, DISPLAY_SIZE[1]/2))
-        screen.blit(text, text_rect)
-    else:
-        screen.fill(WHITE)
 
-        margin = 50
-        turn_text = font.render(
+    screen.fill(WHITE)
+    margin = 50
+    if game.is_over():
+        text = font.render(
+            f'{game.get_winner_text()}', True, BLACK)
+    else:
+        text = font.render(
             f"{'Pelaajan' if game.is_humans_turn else 'Tekoälyn'} vuoro", True, BLACK)
 
-        text_rect = turn_text.get_rect()
-        text_rect.topright = (screen.get_rect().right - margin, margin)
-        screen.blit(turn_text, text_rect)
+    text_rect = text.get_rect()
+    text_rect.topright = (screen.get_rect().right - margin, margin)
+    screen.blit(text, text_rect)
 
-        mouse_position = pygame.mouse.get_pos()
-        for pasture in game.pastures:
-            pointed_at = pasture.collide_with_point(mouse_position)
-            # Fokusoidut laitumet merkitään vaaleammalla taustavärillä
-            pasture.focused = game.should_be_focused(
-                pasture, pointed_at)
-            pasture.render(screen, font)
-            # Piirretään reunat laitumen päälle
-            pygame.draw.polygon(screen, PASTURE_BORDER_COLOR,
-                                pasture.vertices, PASTURE_BORDER_WIDTH)
+    mouse_position = pygame.mouse.get_pos()
+    for pasture in game.pastures:
+        pointed_at = pasture.collide_with_point(mouse_position)
+        # Fokusoidut laitumet merkitään vaaleammalla taustavärillä
+        pasture.focused = game.should_be_focused(
+            pasture, pointed_at)
+        pasture.render(screen, font)
+        # Piirretään reunat laitumen päälle
+        pygame.draw.polygon(screen, PASTURE_BORDER_COLOR,
+                            pasture.vertices, PASTURE_BORDER_WIDTH)
 
     pygame.display.flip()
 
@@ -118,6 +113,10 @@ def main():
             elapsed_time = time.time() - start_time
             print(f"Siirron laskemiseen kului {elapsed_time:.2f} sekuntia")
             print('Valittu siirto on ' + str(new_game_state))
+            # Varmistetaan, että tekoälyn siirroissa kestää vähintään sekunti,
+            # jotta pelaaja ehtii käsittää, mitä tapahtuu
+            if elapsed_time < 1:
+                time.sleep(1 - elapsed_time)
             game = new_game_state
 
         render(screen, font, game)

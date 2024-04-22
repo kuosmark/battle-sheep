@@ -327,4 +327,4 @@ class Game:
     def get_winner_text(self) -> str:
         if not self.is_over():
             return 'Virhe'
-        return 'Pelaaja voitti!' if self.calculate_human_won() else 'Tietokone voitti!'
+        return 'Pelaaja voitti!' if self.calculate_human_won() else 'Tekoäly voitti!'
