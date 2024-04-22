@@ -12,6 +12,7 @@ BLUE_SHEEP_COLOR = (7, 83, 141)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
+PASTURE_RADIUS = 50
 HIGHLIGHT_OFFSET = 60
 MAX_SHEEP = 16
 MIN_SHEEP = 1
@@ -25,7 +26,6 @@ class Pasture:
     occupier: int | None = None
     targeted: bool = False
     color: Tuple[int, int, int] = PASTURE_COLOR
-    radius: float = 50
     focused = False
 
     def __post_init__(self):
@@ -34,28 +34,28 @@ class Pasture:
     def compute_vertices(self) -> List[Tuple[float, float]]:
         """Palauttaa listan laitumen kärjistä koordinaattipareina"""
         x, y = self.position
-        half_radius = self.radius / 2
+        half_radius = PASTURE_RADIUS / 2
         minimal_radius = self.minimal_radius
         return [
             (x, y),
             (x - half_radius, y + minimal_radius),
             (x, y + 2 * minimal_radius),
-            (x + self.radius, y + 2 * minimal_radius),
+            (x + PASTURE_RADIUS, y + 2 * minimal_radius),
             (x + 3 * half_radius, y + minimal_radius),
-            (x + self.radius, y),
+            (x + PASTURE_RADIUS, y),
         ]
 
     @property
     def minimal_radius(self) -> float:
         """Palauttaa laitumen minimisäteen"""
         # https://en.wikipedia.org/wiki/Hexagon#Parameters
-        return self.radius * math.cos(math.radians(30))
+        return PASTURE_RADIUS * math.cos(math.radians(30))
 
     @property
     def centre(self) -> Tuple[float, float]:
         """Palauttaa laitumen keskipisteen"""
         x, y = self.position
-        return (x + self.radius / 2, y + self.minimal_radius)
+        return (x + PASTURE_RADIUS / 2, y + self.minimal_radius)
 
     @property
     def highlight_color(self) -> Tuple[int, ...]:
@@ -118,10 +118,20 @@ class Pasture:
             self.planned_sheep = None
             target_pasture.planned_sheep = None
 
+    def move_amount_of_sheep_to(self, target_pasture: Pasture, sheep: int) -> None:
+        if self.occupier is not None:
+            target_pasture.update_sheep(
+                self.occupier, sheep)
+            new_amount = self.get_amount_of_sheep() - sheep
+            self.update_sheep(self.occupier, new_amount)
+
     def reset(self) -> None:
-        self.occupier = None
         self.sheep = None
+        self.planned_sheep = None
+        self.occupier = None
+        self.targeted = False
         self.color = PASTURE_COLOR
+        self.focused = False
 
     # Laitumen naapurit
 
