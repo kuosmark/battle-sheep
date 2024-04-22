@@ -109,16 +109,14 @@ def main():
                 elif is_right_button_or_enter_pressed(event):
                     game.confirm_move()
         elif not game.is_humans_turn and not game.is_over_for_ai():
-            # Tekoälyn vuoro
-            pygame.time.wait(1000)
+            # Tekoälyn vuoro.
             start_time = time.time()
-            new_game_state = minimax(
-                game, 3, alpha=float('-Inf'), beta=float('Inf'))
+            # Algoritmi vaatii vielä nopeuttamista, joten syvyys ei toistaiseksi ole suuri.
+            _, new_game_state = minimax(
+                game, 2, alpha=float('-Inf'), beta=float('Inf'))
             # Lasketaan siirtoon kulunut aika
             elapsed_time = time.time() - start_time
-            _, new_game_state = minimax(
-                game, 3, alpha=float('-Inf'), beta=float('Inf'))
-            print(f"Siirron laskemiseen kului {elapsed_time:.2f} seconds")
+            print(f"Siirron laskemiseen kului {elapsed_time:.2f} sekuntia")
             print('Valittu siirto on ' + str(new_game_state))
             game = new_game_state
 
