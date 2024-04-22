@@ -1,5 +1,4 @@
 import time
-
 import pygame
 
 from game import Game
@@ -48,35 +47,27 @@ def render(screen, font, game: Game):
     pygame.display.flip()
 
 
-def get_event_name(event) -> str:
-    return pygame.event.event_name(event.type)
-
-
 def is_left_button_pressed(event) -> bool:
-    return get_event_name(event) == 'MouseButtonDown' and event.button == LEFT_MOUSE_BUTTON
-
-
-def is_mouse_wheel_scrolled_up(event) -> bool:
-    if get_event_name(event) == 'MouseButtonDown' and event.button == MOUSE_WHEEL_SCROLL_UP:
-        return True
-    if get_event_name(event) == 'KeyDown' and event.key == pygame.K_UP:
-        return True
-    return False
-
-
-def is_mouse_wheel_scrolled_down(event) -> bool:
-    if get_event_name(event) == 'MouseButtonDown' and event.button == MOUSE_WHEEL_SCROLL_DOWN:
-        return True
-    if get_event_name(event) == 'KeyDown' and event.key == pygame.K_DOWN:
-        return True
-    return False
+    return event.type == pygame.MOUSEBUTTONDOWN and event.button == LEFT_MOUSE_BUTTON
 
 
 def is_right_button_or_enter_pressed(event) -> bool:
     """Palauttaa tosi, jos joko hiiren oikeaa painiketta tai Enter-näppäintä on painettu"""
-    if get_event_name(event) == 'MouseButtonDown' and event.button == RIGHT_MOUSE_BUTTON:
+    if event.type == pygame.MOUSEBUTTONDOWN and event.button == RIGHT_MOUSE_BUTTON:
         return True
-    return get_event_name(event) == 'KeyDown' and event.key == pygame.K_RETURN
+    return event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN
+
+
+def is_mouse_wheel_scrolled_up(event) -> bool:
+    if event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_UP:
+        return True
+    return event.type == pygame.KEYDOWN and event.key == pygame.K_UP
+
+
+def is_mouse_wheel_scrolled_down(event) -> bool:
+    if event.type == pygame.MOUSEBUTTONDOWN and event.button == MOUSE_WHEEL_SCROLL_DOWN:
+        return True
+    return event.type == pygame.KEYDOWN and event.key == pygame.K_DOWN
 
 
 def init_pygame():
