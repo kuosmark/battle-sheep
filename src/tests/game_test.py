@@ -5,7 +5,7 @@ from pasture import Pasture
 
 
 class TestGame(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.game = Game()
 
     def get_free_edge_pasture(self):
@@ -26,14 +26,13 @@ class TestGame(unittest.TestCase):
     def play_initial_phase_and_choose_initial_pasture(self) -> Pasture:
         initial_pasture = self.play_initial_turn_and_get_initial_pasture()
         self.game.next_turn()
-        self.game.click_on_pasture(initial_pasture)
+        self.game.click(initial_pasture.centre)
         return initial_pasture
 
     def play_initial_phase_and_choose_pasture_and_target(self) -> Pasture:
         chosen_pasture = self.play_initial_phase_and_choose_initial_pasture()
-        target = chosen_pasture.get_potential_targets(self.game.pastures)[
-            0]
-        self.game.click_on_pasture(target)
+        target = chosen_pasture.get_potential_targets(self.game.pastures)[0]
+        self.game.click(target.centre)
         return target
 
     def test_initial_sheep_can_be_placed_on_free_edge_pasture(self):
@@ -55,7 +54,7 @@ class TestGame(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.game.place_initial_sheep(choice)
 
-    def test_occupation_of_pasture_is_calculated_correctly(self):
+    def test_occupation_of_pasture_and_player_in_turn_are_calculated_correctly(self):
         initial_pasture = self.play_initial_turn_and_get_initial_pasture()
         self.assertFalse(
             self.game.is_controlled_by_player_in_turn(initial_pasture))
@@ -87,8 +86,7 @@ class TestGame(unittest.TestCase):
         self.play_initial_phase_and_choose_initial_pasture()
         self.game.next_turn()
 
-        targeted_pastures = self.game.get_targeted_pastures()
-        self.assertEqual(len(targeted_pastures), 0)
+        self.assertEqual(self.game.get_amount_of_targeted_pastures(), 0)
 
     def test_single_sheep_is_added_to_target(self):
         target = self.play_initial_phase_and_choose_pasture_and_target()
@@ -123,12 +121,12 @@ class TestGame(unittest.TestCase):
 
     def test_minimum_amount_of_sheep_is_moved_to_target(self):
         target = self.play_initial_phase_and_choose_pasture_and_target()
-        self.game.confirm_move()
+        self.game.press_enter()
         self.assertEqual(target.get_amount_of_sheep(), MIN_SHEEP_TO_MOVE)
 
     def test_max_amount_of_sheep_is_moved_to_target(self):
         target = self.play_initial_phase_and_choose_pasture_and_target()
         self.add_sheep_to_target_one_by_one(
             MAX_SHEEP_TO_MOVE - MIN_SHEEP_TO_MOVE)
-        self.game.confirm_move()
+        self.game.press_enter()
         self.assertEqual(target.get_amount_of_sheep(), MAX_SHEEP_TO_MOVE)

@@ -46,7 +46,7 @@ def minimax(game: Game, depth: int, alpha: float, beta: float) -> Tuple[float, G
     if depth == 0 or game.is_over_for_ai():
         return game.evaluate_game_state(), None
 
-    maximizing_player = game.is_humans_turn
+    maximizing_player = game.is_players_turn()
     possible_moves = get_possible_moves(game, maximizing_player)
     if not possible_moves:
         raise SystemError('No possible moves, but game not over')
