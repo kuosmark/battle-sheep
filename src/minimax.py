@@ -1,8 +1,24 @@
 import copy
+import time
 from typing import List, Tuple
+from constants import ALPHA, BETA, DEPTH
 from game import Game
 
-INITIAL_SHEEP = 16
+
+def get_computers_move(game: Game):
+    start_time = time.time()
+
+    _, move = minimax(game, DEPTH, ALPHA, BETA)
+    print('Valittu siirto on ' + str(move))
+
+    elapsed_time = time.time() - start_time
+    print(f"Siirron laskemiseen kului {elapsed_time:.2f} sekuntia")
+
+    # Varmistetaan, että tekoälyn siirroissa kestää vähintään sekunti
+    if elapsed_time < 1:
+        time.sleep(1 - elapsed_time)
+
+    return move
 
 
 def get_possible_moves(game: Game, maximizing_player: bool) -> List[Game]:
@@ -21,9 +37,8 @@ def get_possible_moves(game: Game, maximizing_player: bool) -> List[Game]:
                     game.undo_move(pasture, target_pasture, sheep)
 
     # Järjestetään mahdolliset siirrot heuristisen arvon mukaiseen paremmuusjärjestykseen
-    sorted_moves = sorted(
+    return sorted(
         possible_moves, key=lambda move: move.evaluate_game_state(), reverse=maximizing_player)
-    return sorted_moves
 
 
 def minimax(game: Game, depth: int, alpha: float, beta: float) -> Tuple[float, Game | None]:

@@ -6,16 +6,7 @@ from typing import List, Tuple
 
 import pygame
 
-PASTURE_COLOR = (163, 178, 3)  # vaalea ruoho
-RED_SHEEP_COLOR = (206, 51, 27)
-BLUE_SHEEP_COLOR = (7, 83, 141)
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-
-PASTURE_RADIUS = 50
-HIGHLIGHT_OFFSET = 60
-MAX_SHEEP = 16
-MIN_SHEEP = 1
+from constants import BLACK, BLUE_SHEEP_COLOR, HALF_RADIUS, HIGHLIGHT_OFFSET, MINIMAL_RADIUS, PASTURE_BORDER_COLOR, PASTURE_BORDER_WIDTH, PASTURE_COLOR, PASTURE_RADIUS, RED_SHEEP_COLOR, WHITE
 
 
 @dataclass
@@ -34,28 +25,20 @@ class Pasture:
     def compute_vertices(self) -> List[Tuple[float, float]]:
         """Palauttaa listan laitumen kärjistä koordinaattipareina"""
         x, y = self.position
-        half_radius = PASTURE_RADIUS / 2
-        minimal_radius = self.minimal_radius
         return [
             (x, y),
-            (x - half_radius, y + minimal_radius),
-            (x, y + 2 * minimal_radius),
-            (x + PASTURE_RADIUS, y + 2 * minimal_radius),
-            (x + 3 * half_radius, y + minimal_radius),
+            (x - HALF_RADIUS, y + MINIMAL_RADIUS),
+            (x, y + 2 * MINIMAL_RADIUS),
+            (x + PASTURE_RADIUS, y + 2 * MINIMAL_RADIUS),
+            (x + 3 * HALF_RADIUS, y + MINIMAL_RADIUS),
             (x + PASTURE_RADIUS, y),
         ]
-
-    @property
-    def minimal_radius(self) -> float:
-        """Palauttaa laitumen minimisäteen"""
-        # https://en.wikipedia.org/wiki/Hexagon#Parameters
-        return PASTURE_RADIUS * math.cos(math.radians(30))
 
     @property
     def centre(self) -> Tuple[float, float]:
         """Palauttaa laitumen keskipisteen"""
         x, y = self.position
-        return (x + PASTURE_RADIUS / 2, y + self.minimal_radius)
+        return (x + HALF_RADIUS, y + MINIMAL_RADIUS)
 
     @property
     def highlight_color(self) -> Tuple[int, ...]:
@@ -85,18 +68,6 @@ class Pasture:
 
     def add_a_sheep(self):
         self.planned_sheep = self.planned_sheep + 1
-
-    # def add_planned_sheep(self, amount: int):
-    #     planned_sheep = self.get_amount_of_planned_sheep() + amount
-    #     if planned_sheep > MAX_SHEEP:
-    #         raise ValueError('Invalid amount of sheep planned')
-    #     self.planned_sheep = planned_sheep
-
-    # def subtract_planned_sheep(self, amount: int):
-    #     planned_sheep = self.get_amount_of_planned_sheep() - amount
-    #     if planned_sheep < MIN_SHEEP:
-    #         raise ValueError('Invalid amount of sheep planned')
-    #     self.planned_sheep = planned_sheep
 
     def deduct_a_sheep(self):
         self.planned_sheep = self.planned_sheep - 1
@@ -138,7 +109,7 @@ class Pasture:
     def is_neighbour(self, pasture: Pasture) -> bool:
         """Palauttaa, onko laidun naapuri"""
         distance = math.dist(pasture.centre, self.centre)
-        return math.isclose(distance, 2 * self.minimal_radius, rel_tol=0.05)
+        return math.isclose(distance, 2 * MINIMAL_RADIUS, rel_tol=0.05)
 
     def get_neighbours(self, pastures: List[Pasture]) -> List[Pasture]:
         """Palauttaa kaikki naapurilaitumet"""
@@ -177,17 +148,17 @@ class Pasture:
 
     def collide_with_point(self, point: Tuple[float, float]) -> bool:
         """Returns True if distance from centre to point is less than horizontal_length"""
-        return math.dist(point, self.centre) < self.minimal_radius
+        return math.dist(point, self.centre) < MINIMAL_RADIUS
 
     def get_all_direction_vectors(self):
         """Returns all direction vectors for a flat-topped hex grid."""
         direction_vectors = {
-            "N": (0, -2 * self.minimal_radius),
-            "S": (0, 2 * self.minimal_radius),
-            "NE": (math.sqrt(3) * self.minimal_radius, -(self.minimal_radius)),
-            "NW": (-(math.sqrt(3) * self.minimal_radius), -(self.minimal_radius)),
-            "SE": (math.sqrt(3) * self.minimal_radius, self.minimal_radius),
-            "SW": (-(math.sqrt(3) * self.minimal_radius), self.minimal_radius),
+            "N": (0, -2 * MINIMAL_RADIUS),
+            "S": (0, 2 * MINIMAL_RADIUS),
+            "NE": (math.sqrt(3) * MINIMAL_RADIUS, - MINIMAL_RADIUS),
+            "NW": (-(math.sqrt(3) * MINIMAL_RADIUS), - MINIMAL_RADIUS),
+            "SE": (math.sqrt(3) * MINIMAL_RADIUS, MINIMAL_RADIUS),
+            "SW": (-(math.sqrt(3) * MINIMAL_RADIUS), MINIMAL_RADIUS),
         }
         return direction_vectors
 
@@ -243,3 +214,7 @@ class Pasture:
             text_surface = font.render(str(self.sheep), True, WHITE)
             text_rect = text_surface.get_rect(center=self.centre)
             screen.blit(text_surface, text_rect)
+
+        # Piirretään laitumen reuna
+        pygame.draw.polygon(screen, PASTURE_BORDER_COLOR,
+                            self.vertices, PASTURE_BORDER_WIDTH)
