@@ -3,7 +3,7 @@
 # A comma-separated list of package or module names from where C extensions may
 # be loaded. Extensions are loading into the active Python interpreter and may
 # run arbitrary code.
-extension-pkg-whitelist=
+extension-pkg-whitelist=pygame
 
 # Specify a score threshold to be exceeded before program exits with error.
 fail-under=10.0
@@ -42,7 +42,7 @@ suggestion-mode=yes
 
 # Allow loading of arbitrary C extensions. Extensions are imported into the
 # active Python interpreter and may run arbitrary code.
-unsafe-load-any-extension=yes
+unsafe-load-any-extension=no
 
 
 [MESSAGES CONTROL]
@@ -60,16 +60,7 @@ confidence=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
-disable=raw-checker-failed,
-        bad-inline-option,
-        locally-disabled,
-        file-ignored,
-        suppressed-message,
-        useless-suppression,
-        deprecated-pragma,
-        use-symbolic-message-instead,
-        missing-module-docstring,
-        missing-function-docstring,
+disable=missing-module-docstring,
         missing-class-docstring
 
 # Enable the message, report, category or checker with the given id(s). You can
@@ -236,7 +227,7 @@ dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_
 ignored-argument-names=_.*|^ignored_|^unused_
 
 # Tells whether we should check for unused import in __init__ files.
-init-import=no
+init-import=yes
 
 # List of qualified module names which can have objects that can redefine
 # builtins.
@@ -276,10 +267,10 @@ single-line-if-stmt=no
 [SIMILARITIES]
 
 # Ignore comments when computing similarities.
-ignore-comments=yes
+ignore-comments=no
 
 # Ignore docstrings when computing similarities.
-ignore-docstrings=yes
+ignore-docstrings=no
 
 # Ignore imports when computing similarities.
 ignore-imports=no
@@ -362,7 +353,7 @@ good-names=i,
 good-names-rgxs=
 
 # Include a hint for the correct naming format with invalid-name.
-include-naming-hint=no
+include-naming-hint=yes
 
 # Naming style matching correct inline iteration names.
 inlinevar-naming-style=any
@@ -410,11 +401,11 @@ variable-naming-style=snake_case
 
 # This flag controls whether inconsistent-quotes generates a warning when the
 # character used as a quote delimiter is used inconsistently within a module.
-check-quote-consistency=no
+check-quote-consistency=yes
 
 # This flag controls whether the implicit-str-concat should generate a warning
 # on implicit string concatenation in sequences defined over several lines.
-check-str-concat-over-line-jumps=no
+check-str-concat-over-line-jumps=yes
 
 
 [IMPORTS]
