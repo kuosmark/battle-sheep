@@ -73,7 +73,17 @@ def main():
     screen, font = init_pygame()
     game = Game()
 
+    is_simulation = False  # Kahden tekoälyn peli
+
     while True:
+        if is_simulation:
+            while not game.is_over():
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                game = get_computers_move(game)
+                render(screen, font, game)
+
         if game.is_players_turn():
             for event in pygame.event.get():
                 handle_event(game, event)
