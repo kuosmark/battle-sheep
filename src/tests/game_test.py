@@ -25,7 +25,9 @@ class TestGame(unittest.TestCase):
         self.play_initial_turn()
 
         self.game.click(chosen_pasture.centre)
-        target = chosen_pasture.get_potential_targets(self.game.pastures)[0]
+        target = chosen_pasture.get_any_potential_target(self.game.pastures)
+        if not target:
+            raise SystemError('No potential targets found')
         self.game.click(target.centre)
         return chosen_pasture, target
 
@@ -65,20 +67,20 @@ class TestGame(unittest.TestCase):
         self.assertEqual(players_initial_pasture.get_amount_of_sheep(
         ), computers_initial_pasture.get_amount_of_sheep())
 
-    def test_occupation_of_pasture_and_player_in_turn_are_calculated_correctly(self):
+    def test_pasture_occupation_and_player_in_turn_are_calculated_correctly(self):
         players_initial_pasture = self.play_initial_turn()
         self.assertTrue(players_initial_pasture.is_occupied_by_player())
         self.assertFalse(
-            self.game.is_controlled_by_player_in_turn(players_initial_pasture))
+            self.game.is_occupied_by_player_in_turn(players_initial_pasture))
 
         computers_initial_pasture = self.play_initial_turn()
         self.assertTrue(computers_initial_pasture.is_occupied_by_computer())
         self.assertFalse(
-            self.game.is_controlled_by_player_in_turn(computers_initial_pasture))
+            self.game.is_occupied_by_player_in_turn(computers_initial_pasture))
 
         self.assertTrue(players_initial_pasture.is_occupied_by_player())
         self.assertTrue(
-            self.game.is_controlled_by_player_in_turn(players_initial_pasture))
+            self.game.is_occupied_by_player_in_turn(players_initial_pasture))
 
     def test_initial_phase_is_calculated_correctly(self):
         self.assertTrue(self.game.is_in_initial_placement())
@@ -90,12 +92,12 @@ class TestGame(unittest.TestCase):
     def test_game_is_not_over_before_initial_sheep_are_placed(self):
         self.assertFalse(self.game.is_over())
         self.assertFalse(self.game.is_over_for_player())
-        self.assertFalse(self.game.is_over_for_ai())
+        self.assertFalse(self.game.is_over_for_computer())
 
         self.play_initial_turn()
         self.assertFalse(self.game.is_over())
         self.assertFalse(self.game.is_over_for_player())
-        self.assertFalse(self.game.is_over_for_ai())
+        self.assertFalse(self.game.is_over_for_computer())
 
     def test_can_choose_own_pasture(self):
         pasture = self.play_initial_turn()
@@ -184,7 +186,7 @@ class TestGame(unittest.TestCase):
         # Pelaaja aloittaa, joten ensimmäisen vuoron jälkeen on tekoälyn vuoro.
         self.assertTrue(self.game.is_computers_turn())
 
-        self.game.undo_initial_move(initial_pasture)
+        self.game.undo_initial_turn(initial_pasture)
 
         self.assertTrue(initial_pasture.is_free())
         self.assertEqual(initial_pasture.get_amount_of_sheep(), 0)
@@ -200,7 +202,7 @@ class TestGame(unittest.TestCase):
         self.assertTrue(target.is_occupied())
         self.assertEqual(target.get_amount_of_sheep(), 1)
 
-        self.game.undo_move(source, target, 1)
+        self.game.undo_normal_turn(source, target, 1)
 
         self.assertTrue(self.game.is_players_turn())
         self.assertTrue(source.is_occupied())

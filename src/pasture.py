@@ -108,9 +108,12 @@ class Pasture:
         """Kertoo, onko laidun pelilaudan reunalla (reunalaitumilla on alle 6 naapuria)"""
         return self._get_amount_of_neighbours(pastures) < 6
 
+    def is_potential_initial_pasture(self, pastures: List[Pasture]) -> bool:
+        """Kertoo, onko laidun potentiaalinen aloituslaidun"""
+        return self.is_free() and self.is_on_edge(pastures)
+
     def _get_free_neighbours(self, pastures: List[Pasture]) -> List[Pasture]:
-        neighbours = self._get_neighbours(pastures)
-        return list(filter(lambda n: n.is_free(), neighbours))
+        return list(filter(lambda n: n.is_free(), self._get_neighbours(pastures)))
 
     def get_amount_of_free_neighbours(self, pastures: List[Pasture]) -> int:
         return len(self._get_free_neighbours(pastures))
@@ -176,7 +179,7 @@ class Pasture:
             current_distance += 1
 
     def get_potential_targets(self, pastures: List[Pasture]) -> List[Pasture]:
-        if self.is_surrounded(pastures) or self.get_amount_of_sheep() < 2:
+        if self.get_amount_of_sheep() < 2 or self.is_surrounded(pastures):
             return []
         potential_targets: List[Pasture] = []
         directions = self._get_all_direction_vectors()
@@ -185,6 +188,16 @@ class Pasture:
             if target_pasture is not None:
                 potential_targets.append(target_pasture)
         return potential_targets
+
+    def get_any_potential_target(self, pastures: List[Pasture]) -> Pasture | None:
+        if self.get_amount_of_sheep() < 2 or self.is_surrounded(pastures):
+            return None
+        directions = self._get_all_direction_vectors()
+        for vector in directions.values():
+            target_pasture = self._get_target_pasture(vector, pastures)
+            if target_pasture is not None:
+                return target_pasture
+        return None
 
     def render(self, screen, font) -> None:
         """Piirtää laitumen näytölle"""

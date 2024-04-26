@@ -73,10 +73,10 @@ def main():
     screen, font = init_pygame()
     game = Game()
 
-    isSimulation = False
+    is_simulation = False  # Kahden tekoälyn peli
 
     while True:
-        if isSimulation:
+        if is_simulation:
             while not game.is_over():
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
