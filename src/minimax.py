@@ -21,7 +21,7 @@ def get_computers_move(game: Game):
     return move
 
 
-def get_possible_moves(game: Game, maximizing_player: bool) -> List[Game]:
+def get_possible_moves(game: Game) -> List[Game]:
     possible_moves: List[Game] = []
     if game.is_in_initial_placement():
         for pasture in game.get_potential_initial_pastures():
@@ -38,7 +38,7 @@ def get_possible_moves(game: Game, maximizing_player: bool) -> List[Game]:
 
     # Järjestetään mahdolliset siirrot heuristisen arvon mukaiseen paremmuusjärjestykseen
     return sorted(
-        possible_moves, key=lambda move: move.evaluate_game_state(), reverse=maximizing_player)
+        possible_moves, key=lambda move: move.evaluate_game_state(), reverse=game.is_players_turn())
 
 
 def minimax(game: Game, depth: int, alpha: float, beta: float) -> Tuple[float, Game | None]:
@@ -46,13 +46,12 @@ def minimax(game: Game, depth: int, alpha: float, beta: float) -> Tuple[float, G
     if depth == 0 or game.is_over_for_ai():
         return game.evaluate_game_state(), None
 
-    maximizing_player = game.is_players_turn()
-    possible_moves = get_possible_moves(game, maximizing_player)
+    possible_moves = get_possible_moves(game)
     if not possible_moves:
         raise SystemError('No possible moves, but game not over')
     best_move: Game | None = None
 
-    if maximizing_player:
+    if game.is_players_turn():
         best_value = float('-Inf')
         for move in possible_moves:
             value, _ = minimax(move, depth - 1, alpha, beta)

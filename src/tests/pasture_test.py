@@ -33,9 +33,10 @@ class TestPasture(unittest.TestCase):
         self.pasture.occupy(PLAYER, 10)
         self.pasture.add_a_planned_sheep()
         self.pasture.reset()
-        self.assertIsNone(self.pasture.occupier)
-        self.assertIsNone(self.pasture.sheep)
-        self.assertIsNone(self.pasture.planned_sheep)
+
+        self.assertTrue(self.pasture.is_free())
+        self.assertEqual(self.pasture.get_amount_of_sheep(), 0)
+        self.assertEqual(self.pasture.get_amount_of_planned_sheep(), 0)
 
     def test_pasture_friendliness_is_calculated_correctly(self):
         self.assertFalse(self.pasture.is_friendly(self.neighbour_pasture))

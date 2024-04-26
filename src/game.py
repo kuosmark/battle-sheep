@@ -161,12 +161,18 @@ class Game:
     def get_amount_of_targeted_pastures(self) -> int:
         return len(self._get_targeted_pastures())
 
+    def get_edge_pastures(self) -> List[Pasture]:
+        return list(filter(lambda pasture: pasture.is_on_edge(self.pastures), self.pastures))
+
+    def get_amount_of_edge_pastures(self) -> int:
+        return len(self.get_edge_pastures())
+
     def _should_be_focused(self, pasture: Pasture, pointed_at: bool) -> bool:
         if pasture is self.chosen_pasture:
             return True
         if pasture.targeted:
             return True
-        if pasture.planned_sheep is not None:
+        if pasture.get_amount_of_planned_sheep() > 0:
             return True
         if pointed_at:
             if self.is_in_initial_placement() and pasture.is_on_edge(self.pastures) and pasture.is_free():
@@ -204,7 +210,7 @@ class Game:
 
     # Lampaiden asetus
 
-    def place_initial_sheep(self, pasture: Pasture) -> None:
+    def _place_initial_sheep(self, pasture: Pasture) -> None:
         """Asettaa aloituslampaat annetulle laitumelle"""
         player = 0 if self._is_humans_turn else 1
         if pasture.is_free() and pasture.is_on_edge(self.pastures):
@@ -214,22 +220,14 @@ class Game:
                 'The given pasture is not suitable for placing sheep.')
 
     def _add_sheep_to_planned_move(self):
-        if self._are_pastures_chosen() and self.chosen_pasture.planned_sheep >= 2:
+        if self._are_pastures_chosen() and self.chosen_pasture.get_amount_of_planned_sheep() >= 2:
             self.chosen_pasture.subtract_a_planned_sheep()
             self.target_pasture.add_a_planned_sheep()
 
-    def add_sheep_to_target(self, amount: int) -> None:
-        for _ in range(amount):
-            self._add_sheep_to_planned_move()
-
     def _subtract_sheep_from_planned_move(self):
-        if self._are_pastures_chosen() and self.target_pasture.planned_sheep >= 2:
+        if self._are_pastures_chosen() and self.target_pasture.get_amount_of_planned_sheep() >= 2:
             self.chosen_pasture.add_a_planned_sheep()
             self.target_pasture.subtract_a_planned_sheep()
-
-    def subtract_sheep_from_target(self, amount: int) -> None:
-        for _ in range(amount):
-            self._subtract_sheep_from_planned_move()
 
     def _click_on_pasture(self, pasture: Pasture) -> None:
         if self.is_in_initial_placement():
@@ -246,13 +244,13 @@ class Game:
                     self.pastures)
                 for p in self.pastures:
                     p.targeted = p in targets
-            elif pasture.targeted and self.chosen_pasture is not None and self.chosen_pasture.sheep is not None and pasture is not self.chosen_pasture:
+            elif pasture.targeted and self.chosen_pasture is not None and self.chosen_pasture.get_amount_of_sheep() > 0 and pasture is not self.chosen_pasture:
                 # Jos lähtöruutu valittu, valitaan kohderuutu
                 if self.target_pasture is not None:
                     self._remove_planned_sheep()
                 self.target_pasture = pasture
                 pasture.planned_sheep = 1
-                self.chosen_pasture.planned_sheep = self.chosen_pasture.sheep - 1
+                self.chosen_pasture.planned_sheep = self.chosen_pasture.get_amount_of_sheep() - 1
             else:
                 self._remove_marked_pastures()
 
@@ -262,7 +260,7 @@ class Game:
             self.next_turn()
 
     def make_initial_turn(self, pasture: Pasture) -> None:
-        self.place_initial_sheep(pasture)
+        self._place_initial_sheep(pasture)
         self.next_turn()
 
     def undo_initial_move(self, pasture: Pasture) -> None:

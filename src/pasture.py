@@ -173,7 +173,7 @@ class Pasture:
             current_distance += 1
 
     def get_potential_targets(self, pastures: List[Pasture]) -> List[Pasture]:
-        if self.is_surrounded(pastures) or self.sheep is None or self.sheep < 2:
+        if self.is_surrounded(pastures) or self.get_amount_of_sheep() < 2:
             return []
         potential_targets: List[Pasture] = []
         directions = self._get_all_direction_vectors()
@@ -189,11 +189,12 @@ class Pasture:
 
         if self.planned_sheep is not None:
             text_surface = font.render(
-                str(self.planned_sheep), True, BLACK)
+                str(self.get_amount_of_planned_sheep()), True, BLACK)
             text_rect = text_surface.get_rect(center=self.centre)
             screen.blit(text_surface, text_rect)
         elif self.sheep is not None:
-            text_surface = font.render(str(self.sheep), True, WHITE)
+            text_surface = font.render(
+                str(self.get_amount_of_sheep()), True, WHITE)
             text_rect = text_surface.get_rect(center=self.centre)
             screen.blit(text_surface, text_rect)
 

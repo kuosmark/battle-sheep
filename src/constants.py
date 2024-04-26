@@ -30,8 +30,6 @@ PLAYER_SHEEP_COLOR = (7, 83, 141)  # sininen
 PLAYER = 0
 COMPUTER = 1
 INITIAL_SHEEP = 16
-MAX_SHEEP_TO_MOVE = 15
-MIN_SHEEP_TO_MOVE = 1
 
 # Algoritmi
 ALPHA = float('-Inf')
