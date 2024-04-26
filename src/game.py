@@ -122,21 +122,20 @@ class Game:
     def is_over_for_player(self) -> bool:
         if self.is_in_initial_placement():
             return False
-        players_pastures = list(filter(
-            lambda pasture: pasture.is_occupied_by_player(), self._get_occupied_pastures()))
-        return self._are_no_potential_moves(players_pastures)
+        pastures = self.get_pastures_occupied_by_player()
+        return self._are_no_potential_moves(pastures)
 
     def is_over_for_ai(self) -> bool:
         if self.is_in_initial_placement():
             return False
-        ais_pastures = list(filter(
-            lambda pasture: not pasture.is_occupied_by_player(), self._get_occupied_pastures()))
-        return self._are_no_potential_moves(ais_pastures)
+        pastures = self.get_pastures_occupied_by_computer()
+        return self._are_no_potential_moves(pastures)
 
     def is_over(self) -> bool:
         if self.is_in_initial_placement():
             return False
-        return self._are_no_potential_moves(self._get_occupied_pastures())
+        pastures = self.get_occupied_pastures()
+        return self._are_no_potential_moves(pastures)
 
     # Laitumet
 
@@ -152,8 +151,14 @@ class Game:
     def _are_pastures_chosen(self) -> bool:
         return self.chosen_pasture is not None and self.target_pasture is not None
 
-    def _get_occupied_pastures(self) -> List[Pasture]:
+    def get_occupied_pastures(self) -> List[Pasture]:
         return list(filter(lambda pasture: pasture.is_occupied(), self.pastures))
+
+    def get_pastures_occupied_by_player(self) -> List[Pasture]:
+        return list(filter(lambda pasture: pasture.is_occupied_by_player(), self.pastures))
+
+    def get_pastures_occupied_by_computer(self) -> List[Pasture]:
+        return list(filter(lambda pasture: pasture.is_occupied_by_computer(), self.pastures))
 
     def _get_targeted_pastures(self) -> List[Pasture]:
         return list(filter(lambda pasture: pasture.targeted is True, self.pastures))
@@ -295,7 +300,7 @@ class Game:
             return float('-Inf')
 
         value: float = 0
-        for pasture in self._get_occupied_pastures():
+        for pasture in self.get_occupied_pastures():
             sheep = pasture.get_amount_of_sheep()
             is_surrounded = pasture.is_surrounded(self.pastures)
             free_neighbours = pasture.get_amount_of_free_neighbours(
