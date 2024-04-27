@@ -1,7 +1,7 @@
 
 import time
 import pygame
-from constants import ALPHA, BETA, BLACK, BOARD_FONT_SIZE, DEPTH, DISPLAY_SIZE, LEFT_MOUSE_BUTTON, MOUSE_WHEEL_SCROLL_DOWN, MOUSE_WHEEL_SCROLL_UP, RIGHT_MOUSE_BUTTON, SIDEBAR_FONT_SIZE, SIDEBAR_MARGIN, SIMULATION_DEPTH, WHITE
+from constants import ALPHA, BETA, BLACK, BOARD_FONT_SIZE, DEPTH, DISPLAY_SIZE, LEFT_MOUSE_BUTTON, MOUSE_WHEEL_SCROLL_DOWN, MOUSE_WHEEL_SCROLL_UP, RIGHT_MOUSE_BUTTON, SIDEBAR_FONT_SIZE, SIDEBAR_MARGIN, SIMULATED_PLAYER_DEPTH, WHITE
 from game import Game
 from minimax import minimax
 
@@ -63,7 +63,7 @@ class Ui:
     def _update_game_state(self):
         start_time = time.time()
 
-        depth = SIMULATION_DEPTH if self._is_simulation else DEPTH
+        depth = SIMULATED_PLAYER_DEPTH if self._game.is_players_turn() else DEPTH
         game_value, next_game_state = minimax(self._game, depth, ALPHA, BETA)
         if next_game_state is None:
             raise SystemError('Game state calculation failed')
@@ -81,7 +81,7 @@ class Ui:
     def _handle_event(self, event):
         if event.type == pygame.QUIT:
             self._exit()
-        elif self._game.is_players_turn():
+        elif not self._is_simulation and self._game.is_players_turn():
             self._handle_input(event)
 
     def play_game(self) -> None:
