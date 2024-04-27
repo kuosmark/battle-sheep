@@ -82,13 +82,12 @@ class Ui:
         if event.type == pygame.QUIT:
             self._exit()
         elif self._game.is_players_turn():
-            if self._is_simulation:
-                self._update_game_state()
-            else:
-                self._handle_input(event)
+            self._handle_input(event)
 
     def play_game(self) -> None:
         if self._game.can_start_computers_turn():
+            self._update_game_state()
+        elif self._is_simulation and self._game.can_start_players_turn():
             self._update_game_state()
         for event in pygame.event.get():
             self._handle_event(event)
