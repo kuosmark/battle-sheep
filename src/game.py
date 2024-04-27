@@ -7,12 +7,13 @@ class Game:
     def __init__(self) -> None:
         self.pastures = self._init_pastures()
         self._turn = 1
-        self._is_humans_turn = True
+        self._is_players_turn = True
+        self._has_ended = False
         self.chosen_pasture: Pasture | None = None
         self.target_pasture: Pasture | None = None
 
     def __str__(self):
-        return f'Peli, jossa vuoro on {self._turn} ja {'pelaajan' if self._is_humans_turn else 'tekoälyn'} siirto. Arvoltaan {self.evaluate_game_state()}'
+        return f'Peli, jossa vuoro on {self._turn} ja {'pelaajan' if self._is_players_turn else 'tekoälyn'} siirto. Arvoltaan {self.evaluate_game_state()}'
 
     def _init_pastures(self) -> List[Pasture]:
         """Luodaan heksagonilaitumista pelilauta"""
@@ -67,31 +68,35 @@ class Game:
         return self._turn <= 2
 
     def is_players_turn(self) -> bool:
-        return self._is_humans_turn
+        return self._is_players_turn
 
     def is_computers_turn(self) -> bool:
-        return not self._is_humans_turn and not self.is_over_for_computer()
+        return not self._is_players_turn
 
     def next_turn(self) -> None:
-        if self._is_humans_turn and not self.is_over_for_computer():
+        if self._is_players_turn and not self.is_over_for_computer():
             # Pelaajan vuoro siirtyy tekoälylle, joka ei ole vielä hävinnyt
-            self._is_humans_turn = False
-        elif not self._is_humans_turn and not self.is_over_for_player():
+            print('Täällä ei')
+            self._is_players_turn = False
+        elif not self._is_players_turn and not self.is_over_for_player():
             # Tekoälyn vuoro siirtyy pelaajalle, joka ei ole vielä hävinnyt
-            self._is_humans_turn = True
+            print('Täällä pitäisi olla')
+            self._is_players_turn = True
 
         self._turn += 1
         self._remove_marked_pastures()
 
     def _previous_turn(self) -> None:
         self._turn -= 1
+        if self._has_ended:
+            self._has_ended = False
         if self.is_in_initial_placement():
-            self._is_humans_turn = not self._is_humans_turn
+            self._is_players_turn = not self._is_players_turn
         else:
             if self.is_over_for_player():
-                self._is_humans_turn = False
+                self._is_players_turn = False
             else:
-                self._is_humans_turn = not self._is_humans_turn
+                self._is_players_turn = not self._is_players_turn
         self._remove_marked_pastures()
 
     # Muuttujien nollaus
@@ -119,18 +124,24 @@ class Game:
     def is_over_for_player(self) -> bool:
         if self.is_in_initial_placement():
             return False
+        if self._has_ended:
+            return True
         pastures = self.get_pastures_occupied_by_player()
         return self._are_no_potential_moves(pastures)
 
     def is_over_for_computer(self) -> bool:
         if self.is_in_initial_placement():
             return False
+        if self._has_ended:
+            return True
         pastures = self.get_pastures_occupied_by_computer()
         return self._are_no_potential_moves(pastures)
 
     def is_over_for_player_in_turn(self) -> bool:
         if self.is_in_initial_placement():
             return False
+        if self._has_ended:
+            return True
         if self.is_players_turn():
             return self.is_over_for_player()
         return self.is_over_for_computer()
@@ -138,8 +149,13 @@ class Game:
     def is_over(self) -> bool:
         if self.is_in_initial_placement():
             return False
+        if self._has_ended:
+            return True
         pastures = self.get_occupied_pastures()
-        return self._are_no_potential_moves(pastures)
+        is_over = self._are_no_potential_moves(pastures)
+        if is_over:
+            self._has_ended = True
+        return is_over
 
     # Laitumet
 
@@ -153,7 +169,7 @@ class Game:
         """Palauttaa tosi, mikäli laidun on vuorossa olevan pelaajan miehittämä"""
         if pasture.is_free():
             return False
-        return self._is_humans_turn == pasture.is_occupied_by_player()
+        return self._is_players_turn == pasture.is_occupied_by_player()
 
     def _are_pastures_chosen(self) -> bool:
         return self.chosen_pasture is not None and self.target_pasture is not None
@@ -180,6 +196,8 @@ class Game:
         return len(self.get_edge_pastures())
 
     def _should_be_focused(self, pasture: Pasture, pointed_at: bool) -> bool:
+        if self._has_ended:
+            return False
         if pasture is self.chosen_pasture:
             return True
         if pasture.targeted:
@@ -189,7 +207,7 @@ class Game:
         if pointed_at:
             if self.is_in_initial_placement() and pasture.is_potential_initial_pasture(self.pastures):
                 return True
-            if not self.is_in_initial_placement() and self.is_occupied_by_player_in_turn(pasture):
+            if not self.is_in_initial_placement() and self.is_players_turn() and pasture.is_occupied_by_player():
                 return True
         return False
 
@@ -226,7 +244,7 @@ class Game:
         """Asettaa aloituslampaat annetulle laitumelle"""
         if pasture.is_potential_initial_pasture(self.pastures):
             pasture.occupy(
-                PLAYER if self._is_humans_turn else COMPUTER, INITIAL_SHEEP)
+                PLAYER if self._is_players_turn else COMPUTER, INITIAL_SHEEP)
         else:
             raise ValueError(
                 'The given pasture is not suitable for placing sheep.')
@@ -304,7 +322,7 @@ class Game:
     def evaluate_game_state(self) -> float:
         # Palautetaan paras tai huonoin mahdollinen arvo voittajan mukaan, mikäli peli on ohi
         if self.is_over():
-            if self._calculate_human_won():
+            if self.is_player_the_winner():
                 return float('Inf')
             return float('-Inf')
 
@@ -332,20 +350,20 @@ class Game:
                     value += sheep
         return value
 
-    def _human_has_larger_continuous_pasture(self) -> bool:
+    def _player_has_larger_continuous_pasture(self) -> bool:
         # Toteutus vaatii vielä parantelua
-        human_friendly_neighbours = 0
+        player_friendly_neighbours = 0
         computer_friendly_neighbours = 0
         for pasture in self.pastures:
             friendly_neighbours = pasture.get_amount_of_friendly_neighbours(
                 self.pastures)
             if pasture.is_occupied_by_player():
-                human_friendly_neighbours += friendly_neighbours
+                player_friendly_neighbours += friendly_neighbours
             else:
                 computer_friendly_neighbours += friendly_neighbours
-        return human_friendly_neighbours > computer_friendly_neighbours
+        return player_friendly_neighbours > computer_friendly_neighbours
 
-    def _calculate_human_won(self) -> bool:
+    def is_player_the_winner(self) -> bool:
         game_value: int = 0
         for pasture in self.get_occupied_pastures():
             if pasture.is_occupied_by_player():
@@ -354,12 +372,12 @@ class Game:
                 game_value -= 1
 
         if game_value == 0:
-            return self._human_has_larger_continuous_pasture()
+            return self._player_has_larger_continuous_pasture()
         return game_value > 0
 
     def get_info_text(self) -> str:
         if self.is_over():
-            if self._calculate_human_won():
+            if self.is_player_the_winner():
                 return 'Pelaaja voitti!'
             return 'Tekoäly voitti!'
         if self.is_players_turn():

@@ -30,8 +30,9 @@ PLAYER_SHEEP_COLOR = (7, 83, 141)  # sininen
 PLAYER = 0
 COMPUTER = 1
 INITIAL_SHEEP = 16
+AMOUNT_OF_PASTURES = 32
 
 # Algoritmi
 ALPHA = float('-Inf')
 BETA = float('Inf')
-DEPTH = 2
+DEPTH = 1
