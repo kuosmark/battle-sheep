@@ -1,5 +1,5 @@
 from typing import List, Tuple
-from constants import COMPUTER, INITIAL_SHEEP, MINIMAL_RADIUS, PASTURE_RADIUS, PLAYER
+from constants import BOARD_HEIGHT, BOARD_WIDTH, COMPUTER, INITIAL_POSITION, INITIAL_SHEEP, MINIMAL_RADIUS, PASTURE_RADIUS, PLAYER
 from pasture import Pasture
 
 
@@ -17,20 +17,17 @@ class Game:
 
     def _init_pastures(self) -> List[Pasture]:
         """Luodaan heksagonilaitumista pelilauta"""
-        x_length = 8
-        y_length = 4
-        initial_position = (50, 50)
-        leftmost_pasture = Pasture(initial_position)
+        leftmost_pasture = Pasture(INITIAL_POSITION)
         pastures = [leftmost_pasture]
 
-        for y_axis in range(y_length):
+        for y_axis in range(BOARD_HEIGHT):
             if y_axis > 0:
                 position = leftmost_pasture.vertices[2]
                 leftmost_pasture = Pasture(position)
                 pastures.append(leftmost_pasture)
 
             pasture = leftmost_pasture
-            for x_axis in range(x_length - 1):
+            for x_axis in range(BOARD_WIDTH - 1):
                 (x, y) = pasture.position
                 # Piirretään joka toinen laidun ylä- ja joka toinen alaviistoon edellisestä
                 if x_axis % 2 == 1:
@@ -64,6 +61,9 @@ class Game:
 
     # Vuorot
 
+    def get_number_of_turn(self) -> int:
+        return self._turn
+
     def is_in_initial_placement(self) -> bool:
         return self._turn <= 2
 
@@ -76,11 +76,9 @@ class Game:
     def next_turn(self) -> None:
         if self._is_players_turn and not self.is_over_for_computer():
             # Pelaajan vuoro siirtyy tekoälylle, joka ei ole vielä hävinnyt
-            print('Täällä ei')
             self._is_players_turn = False
         elif not self._is_players_turn and not self.is_over_for_player():
             # Tekoälyn vuoro siirtyy pelaajalle, joka ei ole vielä hävinnyt
-            print('Täällä pitäisi olla')
             self._is_players_turn = True
 
         self._turn += 1
@@ -205,10 +203,9 @@ class Game:
         if pasture.get_amount_of_planned_sheep() > 0:
             return True
         if pointed_at:
-            if self.is_in_initial_placement() and pasture.is_potential_initial_pasture(self.pastures):
-                return True
-            if not self.is_in_initial_placement() and self.is_players_turn() and pasture.is_occupied_by_player():
-                return True
+            if self.is_in_initial_placement():
+                return pasture.is_potential_initial_pasture(self.pastures)
+            return self.is_players_turn() and pasture.is_occupied_by_player()
         return False
 
     def adjust_focus(self, pasture: Pasture, mouse_position: Tuple[float, float]):
@@ -375,11 +372,11 @@ class Game:
             return self._player_has_larger_continuous_pasture()
         return game_value > 0
 
-    def get_info_text(self) -> str:
+    def get_player_in_turn_text(self) -> str:
         if self.is_over():
             if self.is_player_the_winner():
-                return 'Pelaaja voitti!'
-            return 'Tekoäly voitti!'
+                return 'Pelaaja on voittanut!'
+            return 'Tekoäly on voittanut!'
         if self.is_players_turn():
-            return 'Pelaajan vuoro'
-        return 'Tekoälyn vuoro'
+            return 'Pelaaja'
+        return 'Tekoäly'

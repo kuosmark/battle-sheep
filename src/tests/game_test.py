@@ -207,12 +207,14 @@ class TestGame(unittest.TestCase):
         self.assertEqual(initial_pasture.get_amount_of_sheep(), INITIAL_SHEEP)
         # Pelaaja aloittaa, joten ensimmäisen vuoron jälkeen on tekoälyn vuoro.
         self.assertTrue(self.game.is_computers_turn())
+        self.assertEqual(self.game.get_number_of_turn(), 2)
 
         self.game.undo_initial_turn(initial_pasture)
 
         self.assertTrue(initial_pasture.is_free())
         self.assertEqual(initial_pasture.get_amount_of_sheep(), 0)
         self.assertTrue(self.game.is_players_turn())
+        self.assertEqual(self.game.get_number_of_turn(), 1)
 
     def test_normal_turn_can_be_undone(self):
         source, target = self.choose_target_pasture()
@@ -223,6 +225,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(source.get_amount_of_sheep(), INITIAL_SHEEP - 1)
         self.assertTrue(target.is_occupied())
         self.assertEqual(target.get_amount_of_sheep(), 1)
+        self.assertEqual(self.game.get_number_of_turn(), 4)
 
         self.game.undo_normal_turn(source, target, 1)
 
@@ -231,6 +234,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(source.get_amount_of_sheep(), INITIAL_SHEEP)
         self.assertTrue(target.is_free())
         self.assertEqual(target.get_amount_of_sheep(), 0)
+        self.assertEqual(self.game.get_number_of_turn(), 3)
 
     def test_game_is_over_if_no_more_sheep_left_to_move(self):
         players_initial_pasture = self.play_initial_turn()
