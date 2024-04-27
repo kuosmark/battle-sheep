@@ -6,7 +6,7 @@ Otin käyttöön Poetryn ja Pylintin projektinhallinnan avuksi. Päivitin vaatim
 
 Tällä hetkellä minulla on ajettava ohjelma, joka piirtää näytölle 32 kuusikulmion pelilaudan. Pelilaudalta voi hiirellä valita ruudun, jolloin siihen lisätään 16 lammasta. Pelimekaniikkaa ei vielä ole.
 
-![Kuva sovelluksesta viikon 2 päättyessä](/dokumentaatio/kuvat/viikko_2.png "Kuva sovelluksesta viikon 2 päättyessä")
+![Kuvakaappaus sovelluksesta viikon 2 päättyessä](/dokumentaatio/kuvat/viikko_2.png "Kuvakaappaus sovelluksesta viikon 2 päättyessä")
 
 Olen käyttänyt Pythonia viime vuosina lähinnä skriptaukseen, joten nyt on pitänyt palauttaa mieleen olio-ohjelmoinnin hyviä käytäntöjä. Tämä projekti on ollut hyvä muistinvirkistys siitä, miksi toteutuksen suunnittelu ja asianmukaisen työjonon kokoaminen on niin tärkeää. Kuten usein ohjelmistoprojekteissa, paine päästä koodaamaan oli kova, minkä takia suunnitteluvaihe jäi turhan suppeaksi. Jouduinkin käyttöliittymän kanssa heittämään vanhan tekeleeni roskiin, ja aloittamaan alusta.
 

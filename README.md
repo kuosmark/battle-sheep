@@ -13,3 +13,4 @@ Aineopintojen harjoitustyö: Algoritmit ja tekoäly -kurssilla toteutettu [Battl
 - [Viikko 3](/dokumentaatio/viikkoraportit/viikko_3.md)
 - [Viikko 4](/dokumentaatio/viikkoraportit/viikko_4.md)
 - [Viikko 5](/dokumentaatio/viikkoraportit/viikko_5.md)
+- [Viikko 6](/dokumentaatio/viikkoraportit/viikko_6.md)

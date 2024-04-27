@@ -6,7 +6,7 @@ Kolmanteen palautukseen kuuluneiden viikkojen aikana rakensin pelimekaniikan toi
 
 Tällä hetkellä minulla on graafisen käyttöliittymän kautta pelattava peli, jota voi pelata satunnaisia (sääntöjen mukaisia) siirtoja tekevää "tekoälyä" vastaan. Peli päättyy kun siirtoja ei enää ole mahdollista tehdä. Peli voittajaa ei vielä lasketa tai ilmoiteta. Pelissä on bugeja, jotka hankaloittavat pelaamista. Tilanne parantunee kunhan saan kirjoitettua ykiskkötestejä.
 
-![Kuva sovelluksesta viikon 3 päättyessä](/dokumentaatio/kuvat/viikko_3.png "Kuva sovelluksesta viikon 3 päättyessä")
+![Kuvakaappaus sovelluksesta viikon 3 päättyessä](/dokumentaatio/kuvat/viikko_3.png "Kuvakaappaus sovelluksesta viikon 3 päättyessä")
 
 Olisin näin jälkeenpäin ajatellen voinut kopioida laajemminkin koodia pelimekaniikkaa varten. Päädyin kirjoittamaan suurimman osan myös laitumien koordinaatteja laskevasta koodista itse. Toteutus ei ole optimaalinen eikä helpoin mahdollinen, mutta toimii. Työ on ollut kiinnostavaa, ja koen oppineeni paljon. Siirtojen laskemiseen heksagonaalilaudalla piti hyödyntää vektorilaskentaa, geometriaa ja Pythagorasta.
 
