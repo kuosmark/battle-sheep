@@ -5,12 +5,14 @@ from pasture import Pasture
 
 class Game:
     def __init__(self) -> None:
-        self.pastures = self._init_pastures()
-        self._turn = 1
+        self.pastures: List[Pasture] = self._init_pastures()
+        self._turn: int = 1
         self._is_players_turn = True
         self._has_ended = False
         self.chosen_pasture: Pasture | None = None
         self.target_pasture: Pasture | None = None
+        self.latest_value: float = 0
+        self.latest_computation_time: float = 0
 
     def __str__(self):
         return f'Peli, jossa vuoro on {self._turn} ja {'pelaajan' if self._is_players_turn else 'tekoälyn'} siirto. Arvoltaan {self.evaluate_game_state()}'
@@ -72,6 +74,9 @@ class Game:
 
     def is_computers_turn(self) -> bool:
         return not self._is_players_turn
+
+    def can_start_computers_turn(self) -> bool:
+        return self.is_computers_turn() and not self.is_over_for_computer()
 
     def next_turn(self) -> None:
         if self._is_players_turn and not self.is_over_for_computer():
