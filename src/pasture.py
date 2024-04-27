@@ -96,13 +96,13 @@ class Pasture:
         distance = math.dist(pasture.centre, self.centre)
         return math.isclose(distance, 2 * MINIMAL_RADIUS, rel_tol=0.05)
 
-    def _get_neighbours(self, pastures: List[Pasture]) -> List[Pasture]:
+    def get_neighbours(self, pastures: List[Pasture]) -> List[Pasture]:
         """Palauttaa kaikki naapurilaitumet"""
         return [pasture for pasture in pastures if self._is_neighbour(pasture)]
 
     def _get_amount_of_neighbours(self, pastures: List[Pasture]) -> int:
         """Palauttaa naapurilaitumien määrän"""
-        return len(self._get_neighbours(pastures))
+        return len(self.get_neighbours(pastures))
 
     def is_on_edge(self, pastures: List[Pasture]) -> bool:
         """Kertoo, onko laidun pelilaudan reunalla (reunalaitumilla on alle 6 naapuria)"""
@@ -112,11 +112,11 @@ class Pasture:
         """Kertoo, onko laidun potentiaalinen aloituslaidun"""
         return self.is_free() and self.is_on_edge(pastures)
 
-    def _get_free_neighbours(self, pastures: List[Pasture]) -> List[Pasture]:
-        return list(filter(lambda n: n.is_free(), self._get_neighbours(pastures)))
+    def get_free_neighbours(self, pastures: List[Pasture]) -> List[Pasture]:
+        return list(filter(lambda n: n.is_free(), self.get_neighbours(pastures)))
 
     def get_amount_of_free_neighbours(self, pastures: List[Pasture]) -> int:
-        return len(self._get_free_neighbours(pastures))
+        return len(self.get_free_neighbours(pastures))
 
     def is_surrounded(self, pastures: List[Pasture]) -> bool:
         """Palauttaa, onko laidun ympäröity vallatuilla laitumilla"""
@@ -127,7 +127,7 @@ class Pasture:
         return self.occupier is not None and self.occupier == pasture.occupier
 
     def _get_friendly_neighbours(self, pastures: List[Pasture]) -> List[Pasture]:
-        return list(filter(self.is_friendly, self._get_neighbours(pastures)))
+        return list(filter(self.is_friendly, self.get_neighbours(pastures)))
 
     def get_amount_of_friendly_neighbours(self, pastures: List[Pasture]) -> int:
         return len(self._get_friendly_neighbours(pastures))

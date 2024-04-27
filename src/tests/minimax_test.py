@@ -1,6 +1,6 @@
 from typing import Tuple
 import unittest
-from constants import ALPHA, BETA, INITIAL_SHEEP
+from constants import ALPHA, AMOUNT_OF_PASTURES, BETA, INITIAL_SHEEP
 from minimax import get_possible_moves, minimax
 from game import Game
 
@@ -13,8 +13,9 @@ class TestGame(unittest.TestCase):
 
     def play_game_for_turns(self, turns) -> None:
         for _ in range(turns):
-            next_game_state = get_possible_moves(self.game)[0]
-            self.game = next_game_state
+            possible_next_moves = get_possible_moves(self.game)
+            if len(possible_next_moves) > 0:
+                self.game = possible_next_moves[0]
 
     def get_amount_of_players_sheep(self) -> int:
         return sum(p.get_amount_of_sheep() for p in self.game.get_pastures_occupied_by_player())
@@ -102,6 +103,12 @@ class TestGame(unittest.TestCase):
         self.assertEqual(len(self.game.get_occupied_pastures()), 3)
         self.play_game_for_turns(3)
         self.assertEqual(len(self.game.get_occupied_pastures()), 6)
+
+    def test_game_mut_be_over_after_maximum_amount_of_turns(self):
+        self.play_game_for_turns(AMOUNT_OF_PASTURES)
+        self.assertTrue(self.game.is_over_for_player())
+        self.assertTrue(self.game.is_over_for_computer())
+        self.assertTrue(self.game.is_over())
 
     def test_minimax_returns_the_best_initial_move_for_player_when_using_depth_1(self):
         value, move = minimax(self.game, 1, ALPHA, BETA)
