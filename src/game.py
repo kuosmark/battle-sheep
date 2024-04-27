@@ -72,6 +72,9 @@ class Game:
     def is_players_turn(self) -> bool:
         return self._is_players_turn
 
+    def can_start_players_turn(self) -> bool:
+        return self.is_players_turn() and not self.is_over_for_player()
+
     def is_computers_turn(self) -> bool:
         return not self._is_players_turn
 
