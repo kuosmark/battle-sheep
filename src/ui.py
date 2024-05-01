@@ -75,7 +75,7 @@ class Ui:
     def _update_game_state(self):
         start_time = time.time()
 
-        depth = SIMULATED_PLAYER_DEPTH if self._game.is_players_turn() else DEPTH
+        depth = SIMULATED_PLAYER_DEPTH if self._game.is_players_turn else DEPTH
         game_value, next_game_state = minimax(self._game, depth, ALPHA, BETA)
         if next_game_state is None:
             raise SystemError('Game state calculation failed')
@@ -93,7 +93,7 @@ class Ui:
     def _handle_event(self, event):
         if event.type == pygame.QUIT:
             self._exit()
-        elif not self._is_simulation and self._game.is_players_turn():
+        elif not self._is_simulation and self._game.is_players_turn:
             self._handle_input(event)
 
     def play_game(self) -> None:
@@ -128,7 +128,7 @@ class Ui:
             f'Vaikeustaso: {DEPTH}', top_margin)
 
         top_margin = self._render_sidebar_text(
-            f'Tilanne: {game_value:.2f}', top_margin)
+            f'Tilanne: {game_value}', top_margin)
 
         top_margin = self._render_sidebar_text(
             f'Siirron kesto: {computation_time:.2f}s', top_margin)

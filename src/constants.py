@@ -39,5 +39,5 @@ AMOUNT_OF_PASTURES = 32
 # Algoritmi
 ALPHA = float('-Inf')
 BETA = float('Inf')
-DEPTH = 2
+DEPTH = 3
 SIMULATED_PLAYER_DEPTH = 1

@@ -11,7 +11,7 @@ def get_possible_moves(game: Game) -> List[Game]:
             possible_moves.append(copy.deepcopy(game))
             game.undo_initial_turn(pasture)
     else:
-        for pasture in game.get_potential_sheep_to_move():
+        for pasture in game.get_potential_sheep_to_move_this_turn():
             for target_pasture in pasture.get_potential_targets(game.pastures):
                 for sheep in range(1, pasture.get_amount_of_sheep()):
                     game.make_normal_turn(pasture, target_pasture, sheep)
@@ -19,8 +19,7 @@ def get_possible_moves(game: Game) -> List[Game]:
                     game.undo_normal_turn(pasture, target_pasture, sheep)
 
     # Järjestetään mahdolliset siirrot heuristisen arvon mukaiseen paremmuusjärjestykseen
-    return sorted(
-        possible_moves, key=lambda move: move.evaluate_game_state(), reverse=game.is_players_turn())
+    return sorted(possible_moves, key=lambda move: move.evaluate_game_state(), reverse=game.is_players_turn)
 
 
 def minimax(game: Game, depth: int, alpha: float, beta: float) -> Tuple[float, Game | None]:
@@ -29,10 +28,10 @@ def minimax(game: Game, depth: int, alpha: float, beta: float) -> Tuple[float, G
     if depth == 0 or game.is_over_for_player_in_turn():
         return game.evaluate_game_state(), None
 
-    possible_moves = get_possible_moves(game)
+    possible_moves: List[Game] = get_possible_moves(game)
     best_move: Game | None = None
 
-    if game.is_players_turn():
+    if game.is_players_turn:
         best_value = float('-Inf')
         for move in possible_moves:
             value, _ = minimax(move, depth - 1, alpha, beta)

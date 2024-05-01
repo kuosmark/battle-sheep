@@ -101,7 +101,14 @@ class Pasture:
         self.targeted = False
         self.focused = False
 
-    # Laitumen naapurit
+    def get_value(self, pastures: List[Pasture]) -> int:
+        different_moves_possible = self.get_amount_of_possible_targets(
+            pastures) * self.get_amount_of_sheep() - 1
+        if self.is_occupied_by_player():
+            return different_moves_possible
+        return -abs(different_moves_possible)
+
+        # Laitumen naapurit
 
     def _is_neighbour(self, pasture: Pasture) -> bool:
         """Palauttaa, onko laidun naapuri"""
@@ -133,6 +140,10 @@ class Pasture:
     def is_surrounded(self, pastures: List[Pasture]) -> bool:
         """Palauttaa, onko laidun ympäröity vallatuilla laitumilla"""
         return self.get_amount_of_free_neighbours(pastures) == 0
+
+    def is_possible_to_move(self, pastures: List[Pasture]) -> bool:
+        """Palauttaa, voiko laitumelta siirtää lampaita"""
+        return self.get_amount_of_sheep() > 1 and not self.is_surrounded(pastures)
 
     def is_friendly(self, pasture: Pasture) -> bool:
         """Palauttaa, onko laitumella sama miehittäjä"""
@@ -190,8 +201,9 @@ class Pasture:
                 return last_valid_pasture
             current_distance += 1
 
+    # Voiko nopeuttaa karsimalla annettuja laitumia???
     def get_potential_targets(self, pastures: List[Pasture]) -> List[Pasture]:
-        if self.get_amount_of_sheep() < 2 or self.is_surrounded(pastures):
+        if not self.is_possible_to_move(pastures):
             return []
         potential_targets: List[Pasture] = []
         directions = self._get_all_direction_vectors()
@@ -201,8 +213,11 @@ class Pasture:
                 potential_targets.append(target_pasture)
         return potential_targets
 
+    def get_amount_of_possible_targets(self, pastures: List[Pasture]) -> int:
+        return len(self.get_potential_targets(pastures))
+
     def get_any_potential_target(self, pastures: List[Pasture]) -> Pasture | None:
-        if self.get_amount_of_sheep() < 2 or self.is_surrounded(pastures):
+        if not self.is_possible_to_move(pastures):
             return None
         directions = self._get_all_direction_vectors()
         for vector in directions.values():
