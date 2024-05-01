@@ -3,7 +3,19 @@ import math
 from dataclasses import dataclass
 from typing import List, Tuple
 import pygame
-from constants import BLACK, PLAYER_SHEEP_COLOR, COMPUTER, HALF_RADIUS, HIGHLIGHT_OFFSET, MINIMAL_RADIUS, PASTURE_BORDER_COLOR, PASTURE_BORDER_WIDTH, FREE_PASTURE_COLOR, PASTURE_RADIUS, PLAYER, COMPUTER_SHEEP_COLOR, WHITE
+from constants import (BLACK,
+                       PLAYER_SHEEP_COLOR,
+                       COMPUTER,
+                       HALF_RADIUS,
+                       HIGHLIGHT_OFFSET,
+                       MINIMAL_RADIUS,
+                       PASTURE_BORDER_COLOR,
+                       PASTURE_BORDER_WIDTH,
+                       FREE_PASTURE_COLOR,
+                       PASTURE_RADIUS,
+                       PLAYER,
+                       COMPUTER_SHEEP_COLOR,
+                       WHITE)
 
 
 @dataclass

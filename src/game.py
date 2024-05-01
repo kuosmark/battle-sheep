@@ -1,5 +1,12 @@
 from typing import List, Tuple
-from constants import BOARD_HEIGHT, BOARD_WIDTH, COMPUTER, INITIAL_POSITION, INITIAL_SHEEP, MINIMAL_RADIUS, PASTURE_RADIUS, PLAYER
+from constants import (BOARD_HEIGHT,
+                       BOARD_WIDTH,
+                       COMPUTER,
+                       INITIAL_POSITION,
+                       INITIAL_SHEEP,
+                       MINIMAL_RADIUS,
+                       PASTURE_RADIUS,
+                       PLAYER)
 from pasture import Pasture
 
 

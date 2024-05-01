@@ -1,5 +1,9 @@
 import unittest
-from constants import PLAYER_SHEEP_COLOR, COMPUTER, FREE_PASTURE_COLOR, PLAYER, COMPUTER_SHEEP_COLOR
+from constants import (PLAYER_SHEEP_COLOR,
+                       COMPUTER,
+                       FREE_PASTURE_COLOR,
+                       PLAYER,
+                       COMPUTER_SHEEP_COLOR)
 from pasture import Pasture
 
 

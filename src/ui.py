@@ -1,7 +1,19 @@
 
 import time
 import pygame
-from constants import ALPHA, BETA, BLACK, BOARD_FONT_SIZE, DEPTH, DISPLAY_SIZE, LEFT_MOUSE_BUTTON, MOUSE_WHEEL_SCROLL_DOWN, MOUSE_WHEEL_SCROLL_UP, RIGHT_MOUSE_BUTTON, SIDEBAR_FONT_SIZE, SIDEBAR_MARGIN, SIMULATED_PLAYER_DEPTH, WHITE
+from constants import (ALPHA,
+                       BETA,
+                       BLACK,
+                       BOARD_FONT_SIZE,
+                       DEPTH, DISPLAY_SIZE,
+                       LEFT_MOUSE_BUTTON,
+                       MOUSE_WHEEL_SCROLL_DOWN,
+                       MOUSE_WHEEL_SCROLL_UP,
+                       RIGHT_MOUSE_BUTTON,
+                       SIDEBAR_FONT_SIZE,
+                       SIDEBAR_MARGIN,
+                       SIMULATED_PLAYER_DEPTH,
+                       WHITE)
 from game import Game
 from minimax import minimax
 

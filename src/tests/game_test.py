@@ -1,6 +1,8 @@
 from typing import Tuple
 import unittest
-from constants import COMPUTER, INITIAL_SHEEP, PLAYER
+from constants import (COMPUTER,
+                       INITIAL_SHEEP,
+                       PLAYER)
 from game import Game
 from pasture import Pasture
 
