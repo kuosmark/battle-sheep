@@ -1,9 +1,11 @@
 from typing import Tuple
 import unittest
-from constants import (ALPHA,
-                       AMOUNT_OF_PASTURES,
-                       BETA,
-                       INITIAL_SHEEP)
+from constants import (
+    ALPHA,
+    AMOUNT_OF_PASTURES,
+    BETA,
+    INITIAL_SHEEP
+)
 from minimax import (get_possible_moves, minimax)
 from game import Game
 

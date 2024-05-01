@@ -1,8 +1,10 @@
 from typing import Tuple
 import unittest
-from constants import (COMPUTER,
-                       INITIAL_SHEEP,
-                       PLAYER)
+from constants import (
+    COMPUTER,
+    INITIAL_SHEEP,
+    PLAYER
+)
 from game import Game
 from pasture import Pasture
 
@@ -26,11 +28,11 @@ class TestGame(unittest.TestCase):
         # Tekoälyn vuoro
         self.play_initial_turn()
 
-        self.game.click(chosen_pasture.centre)
+        self.game.click_on_pasture(chosen_pasture)
         target = chosen_pasture.get_any_potential_target(self.game.pastures)
         if not target:
             raise SystemError('No potential targets found')
-        self.game.click(target.centre)
+        self.game.click_on_pasture(target)
         return chosen_pasture, target
 
     def add_sheep_to_target(self, amount: int):
@@ -126,25 +128,38 @@ class TestGame(unittest.TestCase):
     def test_can_choose_own_pasture(self):
         pasture = self.play_initial_turn()
         self.game.next_turn()
-        self.game.click(pasture.centre)
+        self.game.click_on_pasture(pasture)
         self.assertEqual(self.game.chosen_pasture, pasture)
-
-    def test_changing_turn_resets_targeted_pastures(self):
-        pasture = self.play_initial_turn()
-        self.game.next_turn()
-        self.game.click(pasture.centre)
-
-        self.game.next_turn()
-
-        self.assertEqual(self.game.get_amount_of_targeted_pastures(), 0)
 
     def test_can_choose_target_pasture(self):
         _, target = self.choose_target_pasture()
         self.assertEqual(self.game.target_pasture, target)
 
+    def test_changing_turn_resets_targeted_pastures(self):
+        pasture = self.play_initial_turn()
+        self.game.next_turn()
+        self.game.click_on_pasture(pasture)
+
+        self.game.next_turn()
+
+        self.assertEqual(self.game.get_amount_of_targeted_pastures(), 0)
+
     def test_changing_turn_resets_chosen_and_target_pastures(self):
         self.choose_target_pasture()
         self.game.next_turn()
+        self.assertIsNone(self.game.chosen_pasture)
+        self.assertIsNone(self.game.target_pasture)
+
+    def test_clicking_outside_pastures_resets_targeted_pastures(self):
+        self.play_initial_turn()
+        self.game.next_turn()
+        self.game.click_on_pasture(None)
+
+        self.assertEqual(self.game.get_amount_of_targeted_pastures(), 0)
+
+    def test_clicking_outside_pastures_resets_chosen_and_target_pastures(self):
+        self.choose_target_pasture()
+        self.game.click_on_pasture(None)
         self.assertIsNone(self.game.chosen_pasture)
         self.assertIsNone(self.game.target_pasture)
 
@@ -283,9 +298,8 @@ class TestGame(unittest.TestCase):
         players_pasture.sheep = 1
 
         self.game.next_turn()
-        self.assertTrue(self.game.is_computers_turn())
+        self.assertTrue(self.game.can_start_computers_turn())
         self.assertTrue(self.game.is_over_for_player())
-        self.assertFalse(self.game.is_over_for_computer())
 
     def test_turn_changes_correctly_if_computer_can_not_move_anymore(self):
         self.play_initial_turn()
@@ -294,8 +308,7 @@ class TestGame(unittest.TestCase):
         computers_pasture.sheep = 1
 
         self.game.next_turn()
-        self.assertTrue(self.game.is_players_turn)
-        self.assertFalse(self.game.is_over_for_player())
+        self.assertTrue(self.game.can_start_players_turn())
         self.assertTrue(self.game.is_over_for_computer())
 
     def test_winner_is_calculated_correctly_for_a_player_victory(self):
@@ -327,11 +340,11 @@ class TestGame(unittest.TestCase):
         self.assertTrue(self.game.is_over_for_computer())
 
         # Tehdään viimeinen siirto
-        self.game.click(players_pasture.centre)
+        self.game.click_on_pasture(players_pasture)
         target = players_pasture.get_any_potential_target(self.game.pastures)
         if not target:
             raise SystemError('No potential targets found')
-        self.game.click(target.centre)
+        self.game.click_on_pasture(target)
         self.game.press_enter()
         self.assertTrue(self.game.is_over())
         self.assertTrue(self.game.is_over_for_player())
