@@ -311,18 +311,37 @@ class Game:
             game_state_value += pasture.get_value(self.pastures)
         return game_state_value
 
-    def _player_has_larger_continuous_pasture(self) -> bool:
-        # Toteutus vaatii vielä parantelua
-        player_friendly_neighbours = 0
-        computer_friendly_neighbours = 0
-        for pasture in self.pastures:
-            friendly_neighbours = pasture.get_amount_of_friendly_neighbours(
-                self.pastures)
-            if pasture.is_occupied_by_player():
-                player_friendly_neighbours += friendly_neighbours
-            else:
-                computer_friendly_neighbours += friendly_neighbours
-        return player_friendly_neighbours > computer_friendly_neighbours
+    def _go_through_neighbours(self, pasture: Pasture, all_pastures: List[Pasture], herd_size: int) -> int:
+        largest_herd = herd_size
+        # Käydään läpi laitumen naapurit
+        for neighbour in pasture.get_neighbours(all_pastures):
+            # Poistetaan laidun itse käsiteltynä
+            all_pastures_without_self: List[Pasture] = [
+                p for p in all_pastures if p is not pasture]
+            # Pidetään kirjaa suurimmasta löytyneestä alueesta
+            largest_herd = max(largest_herd, self._go_through_neighbours(
+                neighbour, all_pastures_without_self, herd_size + 1))
+
+        return largest_herd
+
+    def _find_largest_herd(self, pastures: List[Pasture]) -> int:
+        """Etsii annettujen laidunten suurimman yhtenäisen alueen"""
+        largest_herd = 0
+        for pasture in pastures:
+            largest_herd = max(largest_herd,
+                               self._go_through_neighbours(pasture, pastures, 1))
+        return largest_herd
+
+    def _player_has_larger_herd(self) -> bool:
+        """Palauttaa, onko pelaajalla suurempi yhtenäinen laidunalue"""
+        players_largest_herd: int = self._find_largest_herd(
+            self.get_pastures_occupied_by_player())
+        print(f'Pelaajan suurin yhtenäinen laidunalue: {players_largest_herd}')
+        computers_largest_herd: int = self._find_largest_herd(
+            self.get_pastures_occupied_by_computer())
+        print(f'Tekoälyn suurin yhtenäinen laidunalue: {
+              computers_largest_herd}')
+        return players_largest_herd > computers_largest_herd
 
     def is_player_the_winner(self) -> bool:
         game_value: int = 0
@@ -333,7 +352,7 @@ class Game:
                 game_value -= 1
 
         if game_value == 0:
-            return self._player_has_larger_continuous_pasture()
+            return self._player_has_larger_herd()
         return game_value > 0
 
     def get_player_in_turn_text(self) -> str:
