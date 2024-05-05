@@ -332,7 +332,7 @@ class Game:
                                self._go_through_neighbours(pasture, pastures, 1))
         return largest_herd
 
-    def _player_has_larger_herd(self) -> bool:
+    def player_has_larger_herd(self) -> bool:
         """Palauttaa, onko pelaajalla suurempi yhtenäinen laidunalue"""
         players_largest_herd: int = self._find_largest_herd(
             self.get_pastures_occupied_by_player())
@@ -352,7 +352,7 @@ class Game:
                 game_value -= 1
 
         if game_value == 0:
-            return self._player_has_larger_herd()
+            return self.player_has_larger_herd()
         return game_value > 0
 
     def get_player_in_turn_text(self) -> str:

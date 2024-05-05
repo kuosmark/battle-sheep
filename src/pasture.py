@@ -98,13 +98,13 @@ class Pasture:
         """Palauttaa kaikki naapurilaitumet"""
         return [pasture for pasture in pastures if self._is_neighbour(pasture)]
 
-    def _get_amount_of_neighbours(self, pastures: List[Pasture]) -> int:
+    def get_amount_of_neighbours(self, pastures: List[Pasture]) -> int:
         """Palauttaa naapurilaitumien määrän"""
         return len(self.get_neighbours(pastures))
 
     def is_on_edge(self, pastures: List[Pasture]) -> bool:
         """Kertoo, onko laidun pelilaudan reunalla (reunalaitumilla on alle 6 naapuria)"""
-        return self._get_amount_of_neighbours(pastures) < 6
+        return self.get_amount_of_neighbours(pastures) < 6
 
     def is_potential_initial_pasture(self, pastures: List[Pasture]) -> bool:
         """Kertoo, onko laidun potentiaalinen aloituslaidun"""

@@ -311,24 +311,6 @@ class TestGame(unittest.TestCase):
         self.assertTrue(self.game.can_start_players_turn())
         self.assertTrue(self.game.is_over_for_computer())
 
-    def test_winner_is_calculated_correctly_for_a_player_victory(self):
-        self.win_game_by_player()
-        self.assertTrue(self.game.is_over())
-        self.assertTrue(self.game.is_player_the_winner())
-
-    def test_winner_is_calculated_correctly_for_a_computer_victory(self):
-        self.win_game_by_computer()
-        self.assertTrue(self.game.is_over())
-        self.assertFalse(self.game.is_player_the_winner())
-
-    # def test_game_state_is_calculated_correctly_for_a_player_victory(self):
-    #     self.win_game_by_player()
-    #     self.assertEqual(self.game.evaluate_game_state(), float('Inf'))
-
-    # def test_game_state_is_calculated_correctly_for_a_computer_victory(self):
-    #     self.win_game_by_computer()
-    #     self.assertEqual(self.game.evaluate_game_state(), float('-Inf'))
-
     def test_undoing_players_last_move_works_correctly(self):
         players_pasture = self.play_initial_turn()
         computers_pasture = self.play_initial_turn()
@@ -384,4 +366,48 @@ class TestGame(unittest.TestCase):
             computers_pasture, target, 1)
         self.assertFalse(self.game.is_over())
         self.assertFalse(self.game.is_over_for_computer())
+        self.assertFalse(self.game.is_player_the_winner())
+
+    def test_winner_is_calculated_correctly_for_a_player_victory(self):
+        self.win_game_by_player()
+        self.assertTrue(self.game.is_over())
+        self.assertTrue(self.game.is_player_the_winner())
+
+    def test_winner_is_calculated_correctly_for_a_computer_victory(self):
+        self.win_game_by_computer()
+        self.assertTrue(self.game.is_over())
+        self.assertFalse(self.game.is_player_the_winner())
+
+    def test_player_with_larger_herd_is_calculated_corretly(self):
+        players_initial_pasture = self.play_initial_turn()
+        computers_initial_pasture = self.play_initial_turn()
+
+        players_neighbour = players_initial_pasture.get_free_neighbours(
+            self.game.pastures)[0]
+        computers_neighbour = computers_initial_pasture.get_free_neighbours(
+            self.game.pastures)[0]
+
+        players_neighbour.occupy(PLAYER, 1)
+        self.assertTrue(self.game.player_has_larger_herd())
+
+        computers_neighbour.occupy(COMPUTER, 1)
+        self.assertFalse(self.game.player_has_larger_herd())
+
+        players_neighbour.reset()
+        players_neighbour.occupy(COMPUTER, 1)
+        self.assertFalse(self.game.player_has_larger_herd())
+
+    def test_winner_is_calculated_correctly_when_amount_of_occupied_pastures_is_equal(self):
+        self.play_initial_turn()
+        computers_initial_pasture = self.play_initial_turn()
+
+        computers_neighbours = computers_initial_pasture.get_free_neighbours(
+            self.game.pastures)
+
+        # Pelaajan kuuluisi voittaa, mikäli molemmilla on yhtä monta laidunta,
+        # mutta pelaajan laitumet ovat yhteydessä toisiinsa.
+
+        computers_neighbours[0].occupy(COMPUTER, 1)
+        computers_neighbours[1].occupy(PLAYER, 1)
+        self.assertFalse(self.game.player_has_larger_herd())
         self.assertFalse(self.game.is_player_the_winner())
