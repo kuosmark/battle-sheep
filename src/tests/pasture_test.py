@@ -1,5 +1,8 @@
 import unittest
-from constants import PLAYER_SHEEP_COLOR, COMPUTER, FREE_PASTURE_COLOR, PLAYER, COMPUTER_SHEEP_COLOR
+from constants import (
+    COMPUTER,
+    PLAYER,
+)
 from pasture import Pasture
 
 
@@ -50,13 +53,3 @@ class TestPasture(unittest.TestCase):
         self.pasture.reset()
         self.pasture.occupy(COMPUTER, 1)
         self.assertTrue(self.pasture.is_friendly(self.neighbour_pasture))
-
-    def test_pasture_color_is_calculated_correctly(self):
-        self.assertEqual(self.pasture.get_color(), FREE_PASTURE_COLOR)
-
-        self.pasture.occupy(PLAYER, 1)
-        self.assertEqual(self.pasture.get_color(), PLAYER_SHEEP_COLOR)
-
-        self.neighbour_pasture.occupy(COMPUTER, 1)
-        self.assertEqual(self.neighbour_pasture.get_color(),
-                         COMPUTER_SHEEP_COLOR)

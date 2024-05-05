@@ -4,6 +4,7 @@ import math
 DISPLAY_SIZE = (960, 540)
 BOARD_FONT_SIZE = 48
 SIDEBAR_MARGIN = 30
+SIDEBAR_DIVIDER = 50
 SIDEBAR_FONT_SIZE = 36
 
 # Hiiren painikkeet
@@ -22,13 +23,29 @@ MINIMAL_RADIUS = PASTURE_RADIUS * math.cos(math.radians(30))
 PASTURE_BORDER_WIDTH = 4
 HIGHLIGHT_OFFSET = 60
 
+# Kuusikulmioruudukon suuntavektorit
+DIRECTION_VECTORS = {
+    (0, -2 * MINIMAL_RADIUS),  # "Pohjoinen"
+    (0, 2 * MINIMAL_RADIUS),  # "Etelä"
+    (math.sqrt(3) * MINIMAL_RADIUS, - MINIMAL_RADIUS),  # "Koillinen"
+    (-(math.sqrt(3) * MINIMAL_RADIUS), - MINIMAL_RADIUS),  # "Luode"
+    (math.sqrt(3) * MINIMAL_RADIUS, MINIMAL_RADIUS),  # "Kaakko"
+    (-(math.sqrt(3) * MINIMAL_RADIUS), MINIMAL_RADIUS),  # "Lounas"
+}
+
 # Värit
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 FREE_PASTURE_COLOR = (163, 178, 3)  # vaalea ruoho
+PLAYERS_PASTURE_COLOR = (7, 83, 141)  # sininen
+COMPUTERS_PASTURE_COLOR = (206, 51, 27)  # punainen
 PASTURE_BORDER_COLOR = (90, 110, 2)  # tummempi ruoho
-COMPUTER_SHEEP_COLOR = (206, 51, 27)  # punainen
-PLAYER_SHEEP_COLOR = (7, 83, 141)  # sininen
+
+# Tekstit
+PLAYER_TURN_TEXT = 'Pelaaja'
+COMPUTER_TURN_TEXT = 'Tekoäly'
+PLAYER_WIN_TEXT = 'Pelaaja on voittanut!'
+COMPUTER_WIN_TEXT = 'Tekoäly on voittanut!'
 
 # Pelilogiikka
 PLAYER = 0
@@ -39,5 +56,5 @@ AMOUNT_OF_PASTURES = 32
 # Algoritmi
 ALPHA = float('-Inf')
 BETA = float('Inf')
-DEPTH = 2
-SIMULATED_PLAYER_DEPTH = 1
+DEPTH = 1
+SIMULATED_PLAYER_DEPTH = 3

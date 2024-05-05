@@ -1,7 +1,12 @@
 from typing import Tuple
 import unittest
-from constants import ALPHA, AMOUNT_OF_PASTURES, BETA, INITIAL_SHEEP
-from minimax import get_possible_moves, minimax
+from constants import (
+    ALPHA,
+    AMOUNT_OF_PASTURES,
+    BETA,
+    INITIAL_SHEEP
+)
+from minimax import (get_possible_moves, minimax)
 from game import Game
 
 
@@ -95,7 +100,7 @@ class TestGame(unittest.TestCase):
 
         self.play_game_for_turns(1)
         self.assertFalse(self.game.is_in_initial_placement())
-        self.assertTrue(self.game.is_players_turn())
+        self.assertTrue(self.game.is_players_turn)
 
     def test_correct_amount_of_pastures_are_occupied(self):
         self.assertEqual(len(self.game.get_occupied_pastures()), 0)

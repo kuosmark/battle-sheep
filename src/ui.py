@@ -1,9 +1,37 @@
 
 import time
+from typing import Tuple
 import pygame
-from constants import ALPHA, BETA, BLACK, BOARD_FONT_SIZE, DEPTH, DISPLAY_SIZE, LEFT_MOUSE_BUTTON, MOUSE_WHEEL_SCROLL_DOWN, MOUSE_WHEEL_SCROLL_UP, RIGHT_MOUSE_BUTTON, SIDEBAR_FONT_SIZE, SIDEBAR_MARGIN, SIMULATED_PLAYER_DEPTH, WHITE
+from constants import (
+    ALPHA,
+    BETA,
+    BLACK,
+    BOARD_FONT_SIZE,
+    COMPUTER_TURN_TEXT,
+    COMPUTER_WIN_TEXT,
+    COMPUTERS_PASTURE_COLOR,
+    DEPTH,
+    DISPLAY_SIZE,
+    FREE_PASTURE_COLOR,
+    HIGHLIGHT_OFFSET,
+    LEFT_MOUSE_BUTTON,
+    MOUSE_WHEEL_SCROLL_DOWN,
+    MOUSE_WHEEL_SCROLL_UP,
+    PASTURE_BORDER_COLOR,
+    PASTURE_BORDER_WIDTH,
+    PLAYER_TURN_TEXT,
+    PLAYER_WIN_TEXT,
+    PLAYERS_PASTURE_COLOR,
+    RIGHT_MOUSE_BUTTON,
+    SIDEBAR_DIVIDER,
+    SIDEBAR_FONT_SIZE,
+    SIDEBAR_MARGIN,
+    SIMULATED_PLAYER_DEPTH,
+    WHITE
+)
 from game import Game
 from minimax import minimax
+from pasture import Pasture
 
 
 class Ui:
@@ -49,27 +77,37 @@ class Ui:
         self.is_running = False
         pygame.quit()
 
+    def _get_pasture_in_mouse_position(self) -> Pasture | None:
+        position = pygame.mouse.get_pos()
+        for pasture in self._game.pastures:
+            if pasture.collide_with_point(position):
+                return pasture
+        return None
+
     def _handle_input(self, event):
         """Käsitellään pelaajan syötteet"""
-        if self._is_left_button_pressed(event):
-            self._game.click(pygame.mouse.get_pos())
-        elif self._is_right_button_or_enter_pressed(event):
-            self._game.press_enter()
-        elif self._is_mouse_wheel_scrolled_up(event):
-            self._game.scroll_up()
-        elif self._is_mouse_wheel_scrolled_down(event):
-            self._game.scroll_down()
+        if event.type == pygame.QUIT:
+            self._exit()
+        if not self._is_simulation:
+            if self._is_left_button_pressed(event):
+                self._game.click_on_pasture(
+                    self._get_pasture_in_mouse_position())
+            elif self._is_right_button_or_enter_pressed(event):
+                self._game.press_enter()
+            elif self._is_mouse_wheel_scrolled_up(event):
+                self._game.scroll_up()
+            elif self._is_mouse_wheel_scrolled_down(event):
+                self._game.scroll_down()
 
     def _update_game_state(self):
         start_time = time.time()
 
-        depth = SIMULATED_PLAYER_DEPTH if self._game.is_players_turn() else DEPTH
+        depth = SIMULATED_PLAYER_DEPTH if self._game.is_players_turn else DEPTH
         game_value, next_game_state = minimax(self._game, depth, ALPHA, BETA)
         if next_game_state is None:
             raise SystemError('Game state calculation failed')
 
         elapsed_time = time.time() - start_time
-
         # Varmistetaan, että siirrossa kestää vähintään sekunti
         if elapsed_time < 1:
             time.sleep(1 - elapsed_time)
@@ -78,23 +116,16 @@ class Ui:
         self._game.latest_value = game_value
         self._game.latest_computation_time = elapsed_time
 
-    def _handle_event(self, event):
-        if event.type == pygame.QUIT:
-            self._exit()
-        elif not self._is_simulation and self._game.is_players_turn():
-            self._handle_input(event)
-
     def play_game(self) -> None:
-        if self._game.can_start_computers_turn():
-            self._update_game_state()
-        elif self._is_simulation and self._game.can_start_players_turn():
+        if ((self._is_simulation and self._game.can_start_players_turn()) or
+                self._game.can_start_computers_turn()):
             self._update_game_state()
         for event in pygame.event.get():
-            self._handle_event(event)
+            self._handle_input(event)
 
     # Näyttö
 
-    def _render_sidebar_text(self, text, top) -> int:
+    def _render_sidebar_text(self, text: str, top: int) -> int:
         """Lisätään teksti määriteltyyn kohtaan"""
         text_surface = self._sidebar_font.render(text, True, BLACK)
         text_rect = text_surface.get_rect(
@@ -104,10 +135,25 @@ class Ui:
         # Palautetaan seuraavan tekstin asema
         return text_rect.bottom + 10
 
-    def _render_sidebar(self, game_value, computation_time):
-        """Piirretään lisätietosarake ruudulle"""
+    def _get_player_in_turn_text(self):
+        if self._game.is_players_turn:
+            return PLAYER_TURN_TEXT
+        return COMPUTER_TURN_TEXT
+
+    def _get_winner_text(self) -> str:
+        if self._game.is_player_the_winner():
+            return PLAYER_WIN_TEXT
+        return COMPUTER_WIN_TEXT
+
+    def _get_largest_herd_text(self) -> str:
+        if self._game.player_has_largest_herd():
+            return f'Pelaaja, {self._game.get_players_largest_herd()}'
+        return f'Tekoäly, {self._game.get_computers_largest_herd()}'
+
+    def _render_sidebar(self):
+        """Piirretään lisätietosarake näytölle"""
         top_margin = self._render_sidebar_text(
-            self._game.get_player_in_turn_text(), SIDEBAR_MARGIN)
+            self._get_player_in_turn_text(), SIDEBAR_MARGIN)
 
         top_margin = self._render_sidebar_text(
             f'Vuoro: {self._game.get_number_of_turn()}', top_margin)
@@ -116,21 +162,75 @@ class Ui:
             f'Vaikeustaso: {DEPTH}', top_margin)
 
         top_margin = self._render_sidebar_text(
-            f'Tilanne: {game_value:.2f}', top_margin)
+            f'Tilanne: {self._game.latest_value}', top_margin)
 
         top_margin = self._render_sidebar_text(
-            f'Siirron kesto: {computation_time:.2f}s', top_margin)
+            f'Siirron kesto: {self._game.latest_computation_time:.2f}s', top_margin)
+
+        if self._game.is_over():
+            top_margin = self._render_sidebar_text(
+                self._get_winner_text(), top_margin + SIDEBAR_DIVIDER)
+
+            top_margin = self._render_sidebar_text(
+                f'Pelaajan laitumet: {
+                    self._game.get_amount_of_pastures_occupied_by_player()}',
+                top_margin)
+
+            top_margin = self._render_sidebar_text(
+                f'Tekoälyn laitumet: {
+                    self._game.get_amount_of_pastures_occupied_by_computer()}',
+                top_margin)
+
+            if self._game.is_equal_amount_of_pastures_occupied():
+                self._render_sidebar_text(
+                    f'Suurin alue: {self._get_largest_herd_text()}', top_margin)
+
+    def _get_pasture_color(self, pasture: Pasture, mouse: Tuple[int, int]) -> Tuple[int, ...]:
+        """Palauttaa laitumen värin miehittäjän ja fokuksen perusteella"""
+        color = FREE_PASTURE_COLOR
+
+        if pasture.is_occupied_by_player():
+            color = PLAYERS_PASTURE_COLOR
+        if pasture.is_occupied_by_computer():
+            color = COMPUTERS_PASTURE_COLOR
+
+        if (not self._is_simulation and
+                self._game.is_focused(pasture, pasture.collide_with_point(mouse))):
+            return tuple(x + HIGHLIGHT_OFFSET if x + HIGHLIGHT_OFFSET < 255 else 255 for x in color)
+
+        return color
+
+    def _render_pasture(self, pasture: Pasture, mouse_position: Tuple[int, int]):
+        """Piirretään laidun näytölle"""
+        pasture_color = self._get_pasture_color(pasture, mouse_position)
+        pygame.draw.polygon(self._screen, pasture_color, pasture.vertices)
+
+        planned_sheep = pasture.get_amount_of_planned_sheep()
+        sheep = pasture.get_amount_of_sheep()
+
+        if planned_sheep > 0:
+            text_surface = self._board_font.render(
+                str(planned_sheep), True, BLACK)
+            text_rect = text_surface.get_rect(center=pasture.centre)
+            self._screen.blit(text_surface, text_rect)
+        elif sheep > 0:
+            text_surface = self._board_font.render(
+                str(sheep), True, WHITE)
+            text_rect = text_surface.get_rect(center=pasture.centre)
+            self._screen.blit(text_surface, text_rect)
+
+        # Piirretään laitumen reuna
+        pygame.draw.polygon(self._screen, PASTURE_BORDER_COLOR,
+                            pasture.vertices, PASTURE_BORDER_WIDTH)
 
     def _render_board(self):
         self._screen.fill(WHITE)
         mouse_position = pygame.mouse.get_pos()
         for pasture in self._game.pastures:
-            self._game.adjust_focus(pasture, mouse_position)
-            pasture.render(self._screen, self._board_font)
+            self._render_pasture(pasture, mouse_position)
 
     def render(self):
         self._render_board()
-        self._render_sidebar(self._game.latest_value,
-                             self._game.latest_computation_time)
+        self._render_sidebar()
         pygame.display.flip()
         self._clock.tick(60)
