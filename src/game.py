@@ -7,7 +7,7 @@ from constants import (
     INITIAL_SHEEP,
     MINIMAL_RADIUS,
     PASTURE_RADIUS,
-    PLAYER
+    PLAYER,
 )
 from pasture import Pasture
 
@@ -17,7 +17,7 @@ class Game:
         self.pastures: List[Pasture] = self._init_pastures()
         self._turn: int = 1
         self.is_players_turn = True
-        self._has_ended = False
+        self._winner: int | None = None
         self.chosen_pasture: Pasture | None = None
         self.target_pasture: Pasture | None = None
         self.latest_value: float = 0
@@ -105,8 +105,8 @@ class Game:
         self._turn -= 1
         self._remove_marked_pastures()
 
-        if self._has_ended:
-            self._has_ended = False
+        if self._winner is not None:
+            self._winner = None
 
         if self.is_over_for_computer():
             self.is_players_turn = True
@@ -140,7 +140,7 @@ class Game:
     def is_over_for_player(self) -> bool:
         if self.is_in_initial_placement():
             return False
-        if self._has_ended:
+        if self._winner is not None:
             return True
         pastures = self.get_pastures_occupied_by_player()
         return self._are_no_potential_moves(pastures)
@@ -148,7 +148,7 @@ class Game:
     def is_over_for_computer(self) -> bool:
         if self.is_in_initial_placement():
             return False
-        if self._has_ended:
+        if self._winner is not None:
             return True
         pastures = self.get_pastures_occupied_by_computer()
         return self._are_no_potential_moves(pastures)
@@ -156,7 +156,7 @@ class Game:
     def is_over_for_player_in_turn(self) -> bool:
         if self.is_in_initial_placement():
             return False
-        if self._has_ended:
+        if self._winner is not None:
             return True
         if self.is_players_turn:
             return self.is_over_for_player()
@@ -165,12 +165,12 @@ class Game:
     def is_over(self) -> bool:
         if self.is_in_initial_placement():
             return False
-        if self._has_ended:
+        if self._winner is not None:
             return True
         pastures = self.get_occupied_pastures()
         is_over = self._are_no_potential_moves(pastures)
         if is_over:
-            self._has_ended = True
+            self._winner = PLAYER if self.is_player_the_winner() else COMPUTER
         return is_over
 
     # Laitumet
@@ -190,8 +190,14 @@ class Game:
     def get_pastures_occupied_by_player(self) -> List[Pasture]:
         return list(filter(lambda pasture: pasture.is_occupied_by_player(), self.pastures))
 
+    def get_amount_of_pastures_occupied_by_player(self) -> int:
+        return len(self.get_pastures_occupied_by_player())
+
     def get_pastures_occupied_by_computer(self) -> List[Pasture]:
         return list(filter(lambda pasture: pasture.is_occupied_by_computer(), self.pastures))
+
+    def get_amount_of_pastures_occupied_by_computer(self) -> int:
+        return len(self.get_pastures_occupied_by_computer())
 
     def get_amount_of_targeted_pastures(self) -> int:
         return sum(1 for pasture in self.pastures if pasture.is_targeted)
@@ -199,8 +205,11 @@ class Game:
     def get_amount_of_edge_pastures(self) -> int:
         return sum(1 for pasture in self.pastures if pasture.is_on_edge(self.pastures))
 
+    def is_equal_amount_of_pastures_occupied(self) -> bool:
+        return self.get_amount_of_pastures_occupied_by_player() == self.get_amount_of_pastures_occupied_by_computer()
+
     def is_focused(self, pasture: Pasture, pointed_at: bool) -> bool:
-        if self._has_ended:
+        if self._winner is not None:
             return False
         if (pasture is self.chosen_pasture or
             pasture.is_targeted or
@@ -304,7 +313,6 @@ class Game:
 
     # Heuristiikka ja voittajan laskenta
 
-    # Testejä valueille eri tilanteissa
     def evaluate_game_state(self) -> float:
         game_state_value: float = 0
         for pasture in self.get_potential_sheep_to_move():
@@ -332,34 +340,23 @@ class Game:
                                self._go_through_neighbours(pasture, pastures, 1))
         return largest_herd
 
-    def player_has_larger_herd(self) -> bool:
+    def get_players_largest_herd(self) -> int:
+        return self._find_largest_herd(self.get_pastures_occupied_by_player())
+
+    def get_computers_largest_herd(self) -> int:
+        return self._find_largest_herd(self.get_pastures_occupied_by_computer())
+
+    def player_has_largest_herd(self) -> bool:
         """Palauttaa, onko pelaajalla suurempi yhtenäinen laidunalue"""
-        players_largest_herd: int = self._find_largest_herd(
-            self.get_pastures_occupied_by_player())
-        print(f'Pelaajan suurin yhtenäinen laidunalue: {players_largest_herd}')
-        computers_largest_herd: int = self._find_largest_herd(
-            self.get_pastures_occupied_by_computer())
-        print(f'Tekoälyn suurin yhtenäinen laidunalue: {
-              computers_largest_herd}')
-        return players_largest_herd > computers_largest_herd
+        return self.get_players_largest_herd() > self.get_computers_largest_herd()
 
     def is_player_the_winner(self) -> bool:
-        game_value: int = 0
-        for pasture in self.get_occupied_pastures():
-            if pasture.is_occupied_by_player():
-                game_value += 1
-            else:
-                game_value -= 1
+        if self._winner is not None:
+            return self._winner == PLAYER
 
-        if game_value == 0:
-            return self.player_has_larger_herd()
-        return game_value > 0
+        players_pastures = self.get_amount_of_pastures_occupied_by_player()
+        computers_pastures = self.get_amount_of_pastures_occupied_by_computer()
 
-    def get_player_in_turn_text(self) -> str:
-        if self.is_over():
-            if self.is_player_the_winner():
-                return 'Pelaaja on voittanut!'
-            return 'Tekoäly on voittanut!'
-        if self.is_players_turn:
-            return 'Pelaaja'
-        return 'Tekoäly'
+        if players_pastures == computers_pastures:
+            return self.player_has_largest_herd()
+        return players_pastures > computers_pastures

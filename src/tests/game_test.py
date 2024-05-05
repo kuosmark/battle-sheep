@@ -388,14 +388,18 @@ class TestGame(unittest.TestCase):
             self.game.pastures)[0]
 
         players_neighbour.occupy(PLAYER, 1)
-        self.assertTrue(self.game.player_has_larger_herd())
+        self.assertTrue(self.game.player_has_largest_herd())
+        self.assertEqual(self.game.get_players_largest_herd(), 2)
 
         computers_neighbour.occupy(COMPUTER, 1)
-        self.assertFalse(self.game.player_has_larger_herd())
+        self.assertFalse(self.game.player_has_largest_herd())
+        self.assertEqual(self.game.get_computers_largest_herd(), 2)
 
         players_neighbour.reset()
         players_neighbour.occupy(COMPUTER, 1)
-        self.assertFalse(self.game.player_has_larger_herd())
+        self.assertFalse(self.game.player_has_largest_herd())
+        self.assertEqual(self.game.get_players_largest_herd(), 1)
+        self.assertGreaterEqual(self.game.get_computers_largest_herd(), 2)
 
     def test_winner_is_calculated_correctly_when_amount_of_occupied_pastures_is_equal(self):
         self.play_initial_turn()
@@ -409,5 +413,6 @@ class TestGame(unittest.TestCase):
 
         computers_neighbours[0].occupy(COMPUTER, 1)
         computers_neighbours[1].occupy(PLAYER, 1)
-        self.assertFalse(self.game.player_has_larger_herd())
+        self.assertTrue(self.game.is_equal_amount_of_pastures_occupied())
+        self.assertFalse(self.game.player_has_largest_herd())
         self.assertFalse(self.game.is_player_the_winner())

@@ -6,14 +6,24 @@ from constants import (
     ALPHA,
     BETA,
     BLACK,
-    BOARD_FONT_SIZE, COMPUTERS_PASTURE_COLOR,
-    DEPTH, DISPLAY_SIZE, FREE_PASTURE_COLOR, HIGHLIGHT_OFFSET,
+    BOARD_FONT_SIZE,
+    COMPUTER_TURN_TEXT,
+    COMPUTER_WIN_TEXT,
+    COMPUTERS_PASTURE_COLOR,
+    DEPTH,
+    DISPLAY_SIZE,
+    FREE_PASTURE_COLOR,
+    HIGHLIGHT_OFFSET,
     LEFT_MOUSE_BUTTON,
     MOUSE_WHEEL_SCROLL_DOWN,
     MOUSE_WHEEL_SCROLL_UP,
     PASTURE_BORDER_COLOR,
-    PASTURE_BORDER_WIDTH, PLAYERS_PASTURE_COLOR,
+    PASTURE_BORDER_WIDTH,
+    PLAYER_TURN_TEXT,
+    PLAYER_WIN_TEXT,
+    PLAYERS_PASTURE_COLOR,
     RIGHT_MOUSE_BUTTON,
+    SIDEBAR_DIVIDER,
     SIDEBAR_FONT_SIZE,
     SIDEBAR_MARGIN,
     SIMULATED_PLAYER_DEPTH,
@@ -125,10 +135,25 @@ class Ui:
         # Palautetaan seuraavan tekstin asema
         return text_rect.bottom + 10
 
+    def _get_player_in_turn_text(self):
+        if self._game.is_players_turn:
+            return PLAYER_TURN_TEXT
+        return COMPUTER_TURN_TEXT
+
+    def _get_winner_text(self) -> str:
+        if self._game.is_player_the_winner():
+            return PLAYER_WIN_TEXT
+        return COMPUTER_WIN_TEXT
+
+    def _get_largest_herd_text(self) -> str:
+        if self._game.player_has_largest_herd():
+            return f'Pelaaja, {self._game.get_players_largest_herd()}'
+        return f'Tekoäly, {self._game.get_computers_largest_herd()}'
+
     def _render_sidebar(self):
         """Piirretään lisätietosarake näytölle"""
         top_margin = self._render_sidebar_text(
-            self._game.get_player_in_turn_text(), SIDEBAR_MARGIN)
+            self._get_player_in_turn_text(), SIDEBAR_MARGIN)
 
         top_margin = self._render_sidebar_text(
             f'Vuoro: {self._game.get_number_of_turn()}', top_margin)
@@ -142,7 +167,25 @@ class Ui:
         top_margin = self._render_sidebar_text(
             f'Siirron kesto: {self._game.latest_computation_time:.2f}s', top_margin)
 
-    def _get_pasture_color(self, pasture: Pasture, mouse_position: Tuple[int, int]) -> Tuple[int, ...]:
+        if self._game.is_over():
+            top_margin = self._render_sidebar_text(
+                self._get_winner_text(), top_margin + SIDEBAR_DIVIDER)
+
+            top_margin = self._render_sidebar_text(
+                f'Pelaajan laitumet: {
+                    self._game.get_amount_of_pastures_occupied_by_player()}',
+                top_margin)
+
+            top_margin = self._render_sidebar_text(
+                f'Tekoälyn laitumet: {
+                    self._game.get_amount_of_pastures_occupied_by_computer()}',
+                top_margin)
+
+            if self._game.is_equal_amount_of_pastures_occupied():
+                self._render_sidebar_text(
+                    f'Suurin alue: {self._get_largest_herd_text()}', top_margin)
+
+    def _get_pasture_color(self, pasture: Pasture, mouse: Tuple[int, int]) -> Tuple[int, ...]:
         """Palauttaa laitumen värin miehittäjän ja fokuksen perusteella"""
         color = FREE_PASTURE_COLOR
 
@@ -152,7 +195,7 @@ class Ui:
             color = COMPUTERS_PASTURE_COLOR
 
         if (not self._is_simulation and
-                self._game.is_focused(pasture, pasture.collide_with_point(mouse_position))):
+                self._game.is_focused(pasture, pasture.collide_with_point(mouse))):
             return tuple(x + HIGHLIGHT_OFFSET if x + HIGHLIGHT_OFFSET < 255 else 255 for x in color)
 
         return color

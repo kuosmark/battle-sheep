@@ -4,6 +4,7 @@ import math
 DISPLAY_SIZE = (960, 540)
 BOARD_FONT_SIZE = 48
 SIDEBAR_MARGIN = 30
+SIDEBAR_DIVIDER = 50
 SIDEBAR_FONT_SIZE = 36
 
 # Hiiren painikkeet
@@ -39,6 +40,12 @@ FREE_PASTURE_COLOR = (163, 178, 3)  # vaalea ruoho
 PLAYERS_PASTURE_COLOR = (7, 83, 141)  # sininen
 COMPUTERS_PASTURE_COLOR = (206, 51, 27)  # punainen
 PASTURE_BORDER_COLOR = (90, 110, 2)  # tummempi ruoho
+
+# Tekstit
+PLAYER_TURN_TEXT = 'Pelaaja'
+COMPUTER_TURN_TEXT = 'Tekoäly'
+PLAYER_WIN_TEXT = 'Pelaaja on voittanut!'
+COMPUTER_WIN_TEXT = 'Tekoäly on voittanut!'
 
 # Pelilogiikka
 PLAYER = 0
