@@ -1,3 +1,4 @@
+import random
 from typing import Tuple
 import unittest
 from constants import (
@@ -16,7 +17,7 @@ class TestGame(unittest.TestCase):
     # Apumetodit
 
     def get_free_edge_pasture(self):
-        return self.game.get_potential_initial_pastures()[0]
+        return random.choice(self.game.get_potential_initial_pastures())
 
     def play_initial_turn(self) -> Pasture:
         initial_pasture = self.get_free_edge_pasture()
@@ -285,7 +286,8 @@ class TestGame(unittest.TestCase):
         self.occupy_neighbours(players_initial_pasture, COMPUTER, 2)
 
         # Tyhjennetään yksi naapureista
-        players_initial_pasture.get_neighbours(self.game.pastures)[0].reset()
+        random.choice(players_initial_pasture.get_neighbours(
+            self.game.pastures)).reset()
 
         self.assertFalse(self.game.is_over_for_player())
         self.assertFalse(self.game.is_over_for_player_in_turn())
@@ -382,10 +384,10 @@ class TestGame(unittest.TestCase):
         players_initial_pasture = self.play_initial_turn()
         computers_initial_pasture = self.play_initial_turn()
 
-        players_neighbour = players_initial_pasture.get_free_neighbours(
-            self.game.pastures)[0]
-        computers_neighbour = computers_initial_pasture.get_free_neighbours(
-            self.game.pastures)[0]
+        players_neighbour = random.choice(
+            players_initial_pasture.get_free_neighbours(self.game.pastures))
+        computers_neighbour = random.choice(
+            computers_initial_pasture.get_free_neighbours(self.game.pastures))
 
         players_neighbour.occupy(PLAYER, 1)
         self.assertTrue(self.game.player_has_largest_herd())
@@ -411,8 +413,9 @@ class TestGame(unittest.TestCase):
         # Pelaajan kuuluisi voittaa, mikäli molemmilla on yhtä monta laidunta,
         # mutta pelaajan laitumet ovat yhteydessä toisiinsa.
 
-        computers_neighbours[0].occupy(COMPUTER, 1)
-        computers_neighbours[1].occupy(PLAYER, 1)
+        chosen_neighbours = random.sample(computers_neighbours, 2)
+        chosen_neighbours[0].occupy(COMPUTER, 1)
+        chosen_neighbours[1].occupy(PLAYER, 1)
         self.assertTrue(self.game.is_equal_amount_of_pastures_occupied())
         self.assertFalse(self.game.player_has_largest_herd())
         self.assertFalse(self.game.is_player_the_winner())
