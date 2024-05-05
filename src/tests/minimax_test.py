@@ -1,4 +1,3 @@
-import random
 from typing import Tuple
 import unittest
 from constants import (
@@ -21,7 +20,7 @@ class TestGame(unittest.TestCase):
         for _ in range(turns):
             possible_next_moves = get_possible_moves(self.game)
             if len(possible_next_moves) > 0:
-                self.game = random.choice(possible_next_moves)
+                self.game = possible_next_moves[0]
 
     def get_amount_of_players_sheep(self) -> int:
         return sum(p.get_amount_of_sheep() for p in self.game.get_pastures_occupied_by_player())
@@ -68,8 +67,7 @@ class TestGame(unittest.TestCase):
         possible_first_turns = get_possible_moves(self.game)
         self.assertEqual(len(possible_first_turns), amount_of_edge_pastures)
 
-        possible_second_turns = get_possible_moves(
-            random.choice(possible_first_turns))
+        possible_second_turns = get_possible_moves(possible_first_turns[0])
         self.assertEqual(len(possible_second_turns),
                          amount_of_edge_pastures - 1)
 
