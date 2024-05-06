@@ -1,20 +1,17 @@
 from typing import List
 from constants import (
-    BOARD_HEIGHT,
-    BOARD_WIDTH,
     COMPUTER,
-    INITIAL_POSITION,
-    INITIAL_SHEEP,
-    MINIMAL_RADIUS,
-    PASTURE_RADIUS,
-    PLAYER,
+    PLAYER
 )
 from pasture import Pasture
+from utils import calculate_initial_sheep, init_pastures
 
 
 class Game:
-    def __init__(self) -> None:
-        self.pastures: List[Pasture] = self._init_pastures()
+    def __init__(self, board_height: int, board_width: int) -> None:
+        self.pastures: List[Pasture] = init_pastures(board_height, board_width)
+        self.initial_sheep: int = calculate_initial_sheep(
+            board_height, board_width)
         self._turn: int = 1
         self.is_players_turn = True
         self._winner: int | None = None
@@ -22,32 +19,6 @@ class Game:
         self.target_pasture: Pasture | None = None
         self.latest_value: float = 0
         self.latest_computation_time: float = 0
-
-    def _init_pastures(self) -> List[Pasture]:
-        """Luodaan pelilaudan laitumet"""
-        leftmost_pasture = Pasture(INITIAL_POSITION)
-        pastures = [leftmost_pasture]
-
-        for y_axis in range(BOARD_HEIGHT):
-            if y_axis > 0:
-                position = leftmost_pasture.vertices[2]
-                leftmost_pasture = Pasture(position)
-                pastures.append(leftmost_pasture)
-
-            pasture = leftmost_pasture
-            for x_axis in range(BOARD_WIDTH - 1):
-                (x, y) = pasture.position
-                # Piirretään joka toinen laidun ylä- ja joka toinen alaviistoon edellisestä
-                if x_axis % 2 == 1:
-                    position = (x + PASTURE_RADIUS * 3 / 2,
-                                y - MINIMAL_RADIUS)
-                else:
-                    position = (x + PASTURE_RADIUS * 3 / 2,
-                                y + MINIMAL_RADIUS)
-                pasture = Pasture(position)
-                pastures.append(pasture)
-
-        return pastures
 
     # Syötteet
 
@@ -170,7 +141,7 @@ class Game:
         pastures = self.get_occupied_pastures()
         is_over = self._are_no_potential_moves(pastures)
         if is_over:
-            self._winner = PLAYER if self.is_player_the_winner() else COMPUTER
+            self._winner = self.calculate_winner()
         return is_over
 
     # Laitumet
@@ -270,7 +241,7 @@ class Game:
         """Asettaa aloituslampaat annetulle laitumelle"""
         if pasture.is_potential_initial_pasture(self.pastures):
             pasture.occupy(
-                PLAYER if self.is_players_turn else COMPUTER, INITIAL_SHEEP)
+                PLAYER if self.is_players_turn else COMPUTER, self.initial_sheep)
         else:
             raise ValueError(
                 'The given pasture is not suitable for placing sheep.')
@@ -346,17 +317,25 @@ class Game:
     def get_computers_largest_herd(self) -> int:
         return self._find_largest_herd(self.get_pastures_occupied_by_computer())
 
-    def player_has_largest_herd(self) -> bool:
-        """Palauttaa, onko pelaajalla suurempi yhtenäinen laidunalue"""
-        return self.get_players_largest_herd() > self.get_computers_largest_herd()
+    def calculate_who_has_largest_herd(self) -> int | None:
+        """Palauttaa pelaajan, jolla on suurin yhtenäinen laidunalue"""
+        player_largest_herd = self.get_players_largest_herd()
+        computers_largest_herd = self.get_computers_largest_herd()
+        if player_largest_herd > computers_largest_herd:
+            return PLAYER
+        if computers_largest_herd > player_largest_herd:
+            return COMPUTER
+        return None
 
-    def is_player_the_winner(self) -> bool:
+    def calculate_winner(self) -> int | None:
         if self._winner is not None:
-            return self._winner == PLAYER
+            return self._winner
 
         players_pastures = self.get_amount_of_pastures_occupied_by_player()
         computers_pastures = self.get_amount_of_pastures_occupied_by_computer()
 
-        if players_pastures == computers_pastures:
-            return self.player_has_largest_herd()
-        return players_pastures > computers_pastures
+        if players_pastures > computers_pastures:
+            return PLAYER
+        if computers_pastures > players_pastures:
+            return COMPUTER
+        return self.calculate_who_has_largest_herd()

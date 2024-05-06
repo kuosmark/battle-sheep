@@ -7,8 +7,9 @@ from constants import (
     BETA,
     BLACK,
     BOARD_FONT_SIZE,
-    COMPUTER_TURN_TEXT,
-    COMPUTER_WIN_TEXT,
+    BOARD_HEIGHT,
+    BOARD_WIDTH,
+    COMPUTER,
     COMPUTERS_PASTURE_COLOR,
     DEPTH,
     DISPLAY_SIZE,
@@ -19,8 +20,7 @@ from constants import (
     MOUSE_WHEEL_SCROLL_UP,
     PASTURE_BORDER_COLOR,
     PASTURE_BORDER_WIDTH,
-    PLAYER_TURN_TEXT,
-    PLAYER_WIN_TEXT,
+    PLAYER,
     PLAYERS_PASTURE_COLOR,
     RIGHT_MOUSE_BUTTON,
     SIDEBAR_DIVIDER,
@@ -39,7 +39,7 @@ class Ui:
         pygame.init()
         self.is_running = True
         self._is_simulation = is_simulation
-        self._game = Game()
+        self._game = Game(BOARD_HEIGHT, BOARD_WIDTH)
         self._clock = pygame.time.Clock()
         self._screen = pygame.display.set_mode(DISPLAY_SIZE)
         self._board_font = pygame.font.SysFont(
@@ -104,21 +104,20 @@ class Ui:
 
         depth = SIMULATED_PLAYER_DEPTH if self._game.is_players_turn else DEPTH
         game_value, next_game_state = minimax(self._game, depth, ALPHA, BETA)
-        if next_game_state is None:
-            raise SystemError('Game state calculation failed')
 
         elapsed_time = time.time() - start_time
         # Varmistetaan, että siirrossa kestää vähintään sekunti
         if elapsed_time < 1:
             time.sleep(1 - elapsed_time)
 
-        self._game = next_game_state
-        self._game.latest_value = game_value
-        self._game.latest_computation_time = elapsed_time
+        if next_game_state is not None:
+            self._game = next_game_state
+            self._game.latest_value = game_value
+            self._game.latest_computation_time = elapsed_time
 
     def play_game(self) -> None:
-        if ((self._is_simulation and self._game.can_start_players_turn()) or
-                self._game.can_start_computers_turn()):
+        if self._game.can_start_computers_turn() or (
+                self._is_simulation and self._game.can_start_players_turn()):
             self._update_game_state()
         for event in pygame.event.get():
             self._handle_input(event)
@@ -135,20 +134,27 @@ class Ui:
         # Palautetaan seuraavan tekstin asema
         return text_rect.bottom + 10
 
-    def _get_player_in_turn_text(self):
+    def _get_player_in_turn_text(self) -> str:
         if self._game.is_players_turn:
-            return PLAYER_TURN_TEXT
-        return COMPUTER_TURN_TEXT
+            return 'Pelaaja'
+        return 'Tekoäly'
 
     def _get_winner_text(self) -> str:
-        if self._game.is_player_the_winner():
-            return PLAYER_WIN_TEXT
-        return COMPUTER_WIN_TEXT
+        winner = self._game.calculate_winner()
+        if winner == PLAYER:
+            return 'Pelaaja on voittanut!'
+        if winner == COMPUTER:
+            return 'Tekoäly on voittanut!'
+        return 'Tasapeli'
 
     def _get_largest_herd_text(self) -> str:
-        if self._game.player_has_largest_herd():
+        largest_herd_owner = self._game.calculate_who_has_largest_herd()
+        if largest_herd_owner == PLAYER:
             return f'Pelaaja, {self._game.get_players_largest_herd()}'
-        return f'Tekoäly, {self._game.get_computers_largest_herd()}'
+        computers_largest_herd = self._game.get_computers_largest_herd()
+        if largest_herd_owner == COMPUTER:
+            return f'Tekoäly, {computers_largest_herd}'
+        return f'Tasapeli, {computers_largest_herd}'
 
     def _render_sidebar(self):
         """Piirretään lisätietosarake näytölle"""

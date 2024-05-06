@@ -2,16 +2,18 @@ from typing import Tuple
 import unittest
 from constants import (
     COMPUTER,
-    INITIAL_SHEEP,
     PLAYER
 )
 from game import Game
 from pasture import Pasture
 
+BOARD_HEIGHT = 4
+BOARD_WIDTH = 8
+
 
 class TestGame(unittest.TestCase):
     def setUp(self) -> None:
-        self.game = Game()
+        self.game = Game(BOARD_HEIGHT, BOARD_WIDTH)
 
     # Apumetodit
 
@@ -20,7 +22,7 @@ class TestGame(unittest.TestCase):
 
     def play_initial_turn(self) -> Pasture:
         initial_pasture = self.get_free_edge_pasture()
-        self.game.make_initial_turn(initial_pasture)
+        self.game.click_on_pasture(initial_pasture)
         return initial_pasture
 
     def choose_target_pasture(self) -> Tuple[Pasture, Pasture]:
@@ -67,22 +69,22 @@ class TestGame(unittest.TestCase):
 
     def test_initial_sheep_can_be_placed_on_free_edge_pasture(self):
         choice = self.get_free_edge_pasture()
-        self.game.make_initial_turn(choice)
+        self.game.click_on_pasture(choice)
         self.assertTrue(choice.is_occupied())
-        self.assertEqual(choice.get_amount_of_sheep(), INITIAL_SHEEP)
+        self.assertEqual(choice.get_amount_of_sheep(), self.game.initial_sheep)
 
     def test_initial_sheep_can_not_be_placed_in_the_middle(self):
         choice = next(
             pasture for pasture in self.game.pastures if not pasture.is_on_edge(self.game.pastures))
         with self.assertRaises(ValueError):
-            self.game.make_initial_turn(choice)
+            self.game.click_on_pasture(choice)
         self.assertEqual(choice.get_amount_of_sheep(), 0)
 
     def test_initial_sheep_can_not_be_placed_on_occupied_pasture(self):
         choice = self.get_free_edge_pasture()
-        self.game.make_initial_turn(choice)
+        self.game.click_on_pasture(choice)
         with self.assertRaises(ValueError):
-            self.game.make_initial_turn(choice)
+            self.game.click_on_pasture(choice)
 
     def test_omputer_can_make_separate_initial_turn(self):
         players_initial_pasture = self.play_initial_turn()
@@ -166,21 +168,21 @@ class TestGame(unittest.TestCase):
     def test_at_default_one_sheep_is_added_to_target(self):
         source, target = self.choose_target_pasture()
         self.assertEqual(source.get_amount_of_planned_sheep(),
-                         INITIAL_SHEEP - 1)
+                         self.game.initial_sheep - 1)
         self.assertEqual(target.get_amount_of_planned_sheep(), 1)
 
     def test_an_additional_sheep_is_added_to_target_correctly(self):
         source, target = self.choose_target_pasture()
         self.game.scroll_up()
         self.assertEqual(source.get_amount_of_planned_sheep(),
-                         INITIAL_SHEEP - 2)
+                         self.game.initial_sheep - 2)
         self.assertEqual(target.get_amount_of_planned_sheep(), 2)
 
     def test_ten_additional_sheep_are_added_to_target_correctly(self):
         source, target = self.choose_target_pasture()
         self.add_sheep_to_target(10)
         self.assertEqual(source.get_amount_of_planned_sheep(),
-                         INITIAL_SHEEP - 11)
+                         self.game.initial_sheep - 11)
         self.assertEqual(target.get_amount_of_planned_sheep(), 11)
 
     def test_at_max_all_but_one_sheep_can_be_added_to_target(self):
@@ -188,40 +190,43 @@ class TestGame(unittest.TestCase):
         self.add_sheep_to_target(100)
         self.assertEqual(source.get_amount_of_planned_sheep(), 1)
         self.assertEqual(target.get_amount_of_planned_sheep(),
-                         INITIAL_SHEEP - 1)
+                         self.game.initial_sheep - 1)
 
     def test_adding_sheep_can_be_reversed(self):
         source, target = self.choose_target_pasture()
         self.add_sheep_to_target(10)
         self.subtract_sheep_from_target(10)
         self.assertEqual(source.get_amount_of_planned_sheep(),
-                         INITIAL_SHEEP - 1)
+                         self.game.initial_sheep - 1)
         self.assertEqual(target.get_amount_of_planned_sheep(), 1)
 
     def test_at_least_one_sheep_must_be_on_target(self):
         source, target = self.choose_target_pasture()
         self.subtract_sheep_from_target(10)
         self.assertEqual(source.get_amount_of_planned_sheep(),
-                         INITIAL_SHEEP - 1)
+                         self.game.initial_sheep - 1)
         self.assertEqual(target.get_amount_of_planned_sheep(), 1)
 
     def test_min_amount_of_sheep_is_moved_to_target_correctly(self):
         source, target = self.choose_target_pasture()
         self.game.press_enter()
-        self.assertEqual(source.get_amount_of_sheep(), INITIAL_SHEEP - 1)
+        self.assertEqual(source.get_amount_of_sheep(),
+                         self.game.initial_sheep - 1)
         self.assertEqual(target.get_amount_of_sheep(), 1)
 
     def test_max_amount_of_sheep_is_moved_to_target_correctly(self):
         source, target = self.choose_target_pasture()
-        self.add_sheep_to_target(INITIAL_SHEEP - 2)
+        self.add_sheep_to_target(self.game.initial_sheep - 2)
         self.game.press_enter()
         self.assertEqual(source.get_amount_of_sheep(), 1)
-        self.assertEqual(target.get_amount_of_sheep(), INITIAL_SHEEP - 1)
+        self.assertEqual(target.get_amount_of_sheep(),
+                         self.game.initial_sheep - 1)
 
     def test_initial_turn_can_be_undone(self):
         initial_pasture = self.play_initial_turn()
         self.assertTrue(initial_pasture.is_occupied())
-        self.assertEqual(initial_pasture.get_amount_of_sheep(), INITIAL_SHEEP)
+        self.assertEqual(initial_pasture.get_amount_of_sheep(),
+                         self.game.initial_sheep)
         # Pelaaja aloittaa, joten ensimmäisen vuoron jälkeen on tekoälyn vuoro.
         self.assertTrue(self.game.is_computers_turn())
         self.assertEqual(self.game.get_number_of_turn(), 2)
@@ -239,7 +244,8 @@ class TestGame(unittest.TestCase):
 
         self.assertTrue(self.game.is_computers_turn())
         self.assertTrue(source.is_occupied())
-        self.assertEqual(source.get_amount_of_sheep(), INITIAL_SHEEP - 1)
+        self.assertEqual(source.get_amount_of_sheep(),
+                         self.game.initial_sheep - 1)
         self.assertTrue(target.is_occupied())
         self.assertEqual(target.get_amount_of_sheep(), 1)
         self.assertEqual(self.game.get_number_of_turn(), 4)
@@ -248,7 +254,7 @@ class TestGame(unittest.TestCase):
 
         self.assertTrue(self.game.is_players_turn)
         self.assertTrue(source.is_occupied())
-        self.assertEqual(source.get_amount_of_sheep(), INITIAL_SHEEP)
+        self.assertEqual(source.get_amount_of_sheep(), self.game.initial_sheep)
         self.assertTrue(target.is_free())
         self.assertEqual(target.get_amount_of_sheep(), 0)
         self.assertEqual(self.game.get_number_of_turn(), 3)
@@ -330,14 +336,14 @@ class TestGame(unittest.TestCase):
         self.game.press_enter()
         self.assertTrue(self.game.is_over())
         self.assertTrue(self.game.is_over_for_player())
-        self.assertTrue(self.game.is_player_the_winner())
+        self.assertEqual(self.game.calculate_winner(), PLAYER)
 
         # Perutaan siirto
         self.game.undo_normal_turn(
             players_pasture, target, 1)
         self.assertFalse(self.game.is_over())
         self.assertFalse(self.game.is_over_for_player())
-        self.assertFalse(self.game.is_player_the_winner())
+        self.assertNotEqual(self.game.calculate_winner(), PLAYER)
 
     def test_undoing_computers_last_move_works_correctly(self):
         players_pasture = self.play_initial_turn()
@@ -359,24 +365,22 @@ class TestGame(unittest.TestCase):
         self.game.make_normal_turn(computers_pasture, target, 1)
         self.assertTrue(self.game.is_over())
         self.assertTrue(self.game.is_over_for_computer())
-        self.assertFalse(self.game.is_player_the_winner())
 
         # Perutaan siirto
         self.game.undo_normal_turn(
             computers_pasture, target, 1)
         self.assertFalse(self.game.is_over())
         self.assertFalse(self.game.is_over_for_computer())
-        self.assertFalse(self.game.is_player_the_winner())
 
     def test_winner_is_calculated_correctly_for_a_player_victory(self):
         self.win_game_by_player()
         self.assertTrue(self.game.is_over())
-        self.assertTrue(self.game.is_player_the_winner())
+        self.assertEqual(self.game.calculate_winner(), PLAYER)
 
     def test_winner_is_calculated_correctly_for_a_computer_victory(self):
         self.win_game_by_computer()
         self.assertTrue(self.game.is_over())
-        self.assertFalse(self.game.is_player_the_winner())
+        self.assertEqual(self.game.calculate_winner(), COMPUTER)
 
     def test_player_with_larger_herd_is_calculated_corretly(self):
         players_initial_pasture = self.play_initial_turn()
@@ -388,31 +392,15 @@ class TestGame(unittest.TestCase):
             self.game.pastures)[0]
 
         players_neighbour.occupy(PLAYER, 1)
-        self.assertTrue(self.game.player_has_largest_herd())
         self.assertEqual(self.game.get_players_largest_herd(), 2)
+        self.assertEqual(self.game.calculate_who_has_largest_herd(), PLAYER)
 
         computers_neighbour.occupy(COMPUTER, 1)
-        self.assertFalse(self.game.player_has_largest_herd())
         self.assertEqual(self.game.get_computers_largest_herd(), 2)
+        self.assertIsNone(self.game.calculate_who_has_largest_herd())
 
         players_neighbour.reset()
         players_neighbour.occupy(COMPUTER, 1)
-        self.assertFalse(self.game.player_has_largest_herd())
         self.assertEqual(self.game.get_players_largest_herd(), 1)
         self.assertGreaterEqual(self.game.get_computers_largest_herd(), 2)
-
-    def test_winner_is_calculated_correctly_when_amount_of_occupied_pastures_is_equal(self):
-        self.play_initial_turn()
-        computers_initial_pasture = self.play_initial_turn()
-
-        computers_neighbours = computers_initial_pasture.get_free_neighbours(
-            self.game.pastures)
-
-        # Pelaajan kuuluisi voittaa, mikäli molemmilla on yhtä monta laidunta,
-        # mutta pelaajan laitumet ovat yhteydessä toisiinsa.
-
-        computers_neighbours[0].occupy(COMPUTER, 1)
-        computers_neighbours[1].occupy(PLAYER, 1)
-        self.assertTrue(self.game.is_equal_amount_of_pastures_occupied())
-        self.assertFalse(self.game.player_has_largest_herd())
-        self.assertFalse(self.game.is_player_the_winner())
+        self.assertEqual(self.game.calculate_who_has_largest_herd(), COMPUTER)
