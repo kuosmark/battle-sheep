@@ -3,24 +3,38 @@ import unittest
 from constants import (
     ALPHA,
     AMOUNT_OF_PASTURES,
-    BETA,
-    INITIAL_SHEEP
+    BETA
 )
 from minimax import (get_possible_moves, minimax)
 from game import Game
+from utils import init_pastures
 
 
 class TestGame(unittest.TestCase):
     def setUp(self) -> None:
-        self.game = Game()
+        self.initial_sheep = 8
+        self.game = Game(init_pastures(
+            board_height=4,
+            board_width=4),
+            initial_sheep=self.initial_sheep)
 
     # Apumetodit
 
-    def play_game_for_turns(self, turns) -> None:
+    def play_game_for_turns(self, turns: int) -> None:
         for _ in range(turns):
             possible_next_moves = get_possible_moves(self.game)
             if len(possible_next_moves) > 0:
                 self.game = possible_next_moves[0]
+
+    def play_game_using_minimax_for_turns(self, turns: int, player_depth: int, computer_depth: int) -> None:
+        for _ in range(turns):
+            print(str(self.game.evaluate_game_state()))
+            print('Pelaaja' + str(self.game.get_amount_of_pastures_occupied_by_player()))
+            print(str(self.game.get_amount_of_pastures_occupied_by_computer()))
+            depth = player_depth if self.game.is_players_turn else computer_depth
+            _, next_move = minimax(self.game, depth, ALPHA, BETA)
+            if next_move is not None:
+                self.game = next_move
 
     def get_amount_of_players_sheep(self) -> int:
         return sum(p.get_amount_of_sheep() for p in self.game.get_pastures_occupied_by_player())
@@ -82,16 +96,22 @@ class TestGame(unittest.TestCase):
 
     def test_total_amount_of_sheep_does_not_change(self):
         self.play_game_for_turns(2)
-        self.assertEqual(self.get_amount_of_players_sheep(), INITIAL_SHEEP)
-        self.assertEqual(self.get_amount_of_computers_sheep(), INITIAL_SHEEP)
+        self.assertEqual(self.get_amount_of_players_sheep(),
+                         self.initial_sheep)
+        self.assertEqual(self.get_amount_of_computers_sheep(),
+                         self.initial_sheep)
 
         self.play_game_for_turns(2)
-        self.assertEqual(self.get_amount_of_players_sheep(), INITIAL_SHEEP)
-        self.assertEqual(self.get_amount_of_computers_sheep(), INITIAL_SHEEP)
+        self.assertEqual(self.get_amount_of_players_sheep(),
+                         self.initial_sheep)
+        self.assertEqual(self.get_amount_of_computers_sheep(),
+                         self.initial_sheep)
 
         self.play_game_for_turns(2)
-        self.assertEqual(self.get_amount_of_players_sheep(), INITIAL_SHEEP)
-        self.assertEqual(self.get_amount_of_computers_sheep(), INITIAL_SHEEP)
+        self.assertEqual(self.get_amount_of_players_sheep(),
+                         self.initial_sheep)
+        self.assertEqual(self.get_amount_of_computers_sheep(),
+                         self.initial_sheep)
 
     def test_turns_are_calculated_correctly(self):
         self.play_game_for_turns(1)
@@ -129,3 +149,12 @@ class TestGame(unittest.TestCase):
         best_value, best_move = self.get_move_with_lowest_value((self.game))
         self.assertEqual(value, best_value)
         self.assertTrue(self.are_the_same_second_move(move, best_move))
+
+    def test_player_that_searches_deeper_wins(self):
+        self.play_game_using_minimax_for_turns(
+            AMOUNT_OF_PASTURES, player_depth=2, computer_depth=1)
+        self.assertTrue(self.game.is_over())
+        self.assertFalse(self.game.is_player_the_winner())
+
+    # TESTAA MITEN TEKOÄLYT PELAAVAT TOISIAAN VASTAAN
+    # PAREMMAN PITÄISI AINA VOITTAA

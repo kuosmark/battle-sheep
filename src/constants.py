@@ -24,14 +24,14 @@ PASTURE_BORDER_WIDTH = 4
 HIGHLIGHT_OFFSET = 60
 
 # Kuusikulmioruudukon suuntavektorit
-DIRECTION_VECTORS = {
+DIRECTION_VECTORS = [
     (0, -2 * MINIMAL_RADIUS),  # "Pohjoinen"
     (0, 2 * MINIMAL_RADIUS),  # "Etelä"
     (math.sqrt(3) * MINIMAL_RADIUS, - MINIMAL_RADIUS),  # "Koillinen"
     (-(math.sqrt(3) * MINIMAL_RADIUS), - MINIMAL_RADIUS),  # "Luode"
     (math.sqrt(3) * MINIMAL_RADIUS, MINIMAL_RADIUS),  # "Kaakko"
     (-(math.sqrt(3) * MINIMAL_RADIUS), MINIMAL_RADIUS),  # "Lounas"
-}
+]
 
 # Värit
 WHITE = (255, 255, 255)

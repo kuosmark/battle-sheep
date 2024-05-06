@@ -81,7 +81,7 @@ class Pasture:
         self.is_targeted = False
 
     def get_value(self, pastures: List[Pasture]) -> int:
-        different_moves_possible = self.get_amount_of_possible_targets(
+        different_moves_possible = self.get_amount_of_potential_targets(
             pastures) * self.get_amount_of_sheep() - 1
         if self.is_occupied_by_player():
             return different_moves_possible
@@ -123,16 +123,6 @@ class Pasture:
     def is_possible_to_move(self, pastures: List[Pasture]) -> bool:
         """Palauttaa, voiko laitumelta siirtää lampaita"""
         return self.get_amount_of_sheep() > 1 and not self.is_surrounded(pastures)
-
-    def is_friendly(self, pasture: Pasture) -> bool:
-        """Palauttaa, onko laitumella sama miehittäjä"""
-        return self.occupier is not None and self.occupier == pasture.occupier
-
-    def _get_friendly_neighbours(self, pastures: List[Pasture]) -> List[Pasture]:
-        return list(filter(self.is_friendly, self.get_neighbours(pastures)))
-
-    def get_amount_of_friendly_neighbours(self, pastures: List[Pasture]) -> int:
-        return len(self._get_friendly_neighbours(pastures))
 
     # Pelimekaniikka
 
@@ -176,7 +166,7 @@ class Pasture:
                 potential_targets.append(target_pasture)
         return potential_targets
 
-    def get_amount_of_possible_targets(self, pastures: List[Pasture]) -> int:
+    def get_amount_of_potential_targets(self, pastures: List[Pasture]) -> int:
         return len(self.get_potential_targets(pastures))
 
     def get_any_potential_target(self, pastures: List[Pasture]) -> Pasture | None:

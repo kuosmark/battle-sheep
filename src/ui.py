@@ -7,6 +7,8 @@ from constants import (
     BETA,
     BLACK,
     BOARD_FONT_SIZE,
+    BOARD_HEIGHT,
+    BOARD_WIDTH,
     COMPUTER_TURN_TEXT,
     COMPUTER_WIN_TEXT,
     COMPUTERS_PASTURE_COLOR,
@@ -14,6 +16,7 @@ from constants import (
     DISPLAY_SIZE,
     FREE_PASTURE_COLOR,
     HIGHLIGHT_OFFSET,
+    INITIAL_SHEEP,
     LEFT_MOUSE_BUTTON,
     MOUSE_WHEEL_SCROLL_DOWN,
     MOUSE_WHEEL_SCROLL_UP,
@@ -32,6 +35,7 @@ from constants import (
 from game import Game
 from minimax import minimax
 from pasture import Pasture
+from utils import init_pastures
 
 
 class Ui:
@@ -39,7 +43,9 @@ class Ui:
         pygame.init()
         self.is_running = True
         self._is_simulation = is_simulation
-        self._game = Game()
+        self._game = Game(
+            pastures=init_pastures(BOARD_HEIGHT, BOARD_WIDTH),
+            initial_sheep=INITIAL_SHEEP)
         self._clock = pygame.time.Clock()
         self._screen = pygame.display.set_mode(DISPLAY_SIZE)
         self._board_font = pygame.font.SysFont(

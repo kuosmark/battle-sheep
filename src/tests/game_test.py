@@ -1,17 +1,24 @@
 from typing import Tuple
 import unittest
 from constants import (
+    BOARD_HEIGHT,
+    BOARD_WIDTH,
     COMPUTER,
     INITIAL_SHEEP,
     PLAYER
 )
 from game import Game
 from pasture import Pasture
+from utils import init_pastures
 
 
 class TestGame(unittest.TestCase):
     def setUp(self) -> None:
-        self.game = Game()
+        self.initial_sheep = 8
+        self.game = Game(init_pastures(
+            board_height=BOARD_HEIGHT,
+            board_width=BOARD_WIDTH),
+            initial_sheep=INITIAL_SHEEP)
 
     # Apumetodit
 
@@ -20,7 +27,7 @@ class TestGame(unittest.TestCase):
 
     def play_initial_turn(self) -> Pasture:
         initial_pasture = self.get_free_edge_pasture()
-        self.game.make_initial_turn(initial_pasture)
+        self.game.click_on_pasture(initial_pasture)
         return initial_pasture
 
     def choose_target_pasture(self) -> Tuple[Pasture, Pasture]:
@@ -67,7 +74,7 @@ class TestGame(unittest.TestCase):
 
     def test_initial_sheep_can_be_placed_on_free_edge_pasture(self):
         choice = self.get_free_edge_pasture()
-        self.game.make_initial_turn(choice)
+        self.game.click_on_pasture(choice)
         self.assertTrue(choice.is_occupied())
         self.assertEqual(choice.get_amount_of_sheep(), INITIAL_SHEEP)
 
@@ -75,14 +82,14 @@ class TestGame(unittest.TestCase):
         choice = next(
             pasture for pasture in self.game.pastures if not pasture.is_on_edge(self.game.pastures))
         with self.assertRaises(ValueError):
-            self.game.make_initial_turn(choice)
+            self.game.click_on_pasture(choice)
         self.assertEqual(choice.get_amount_of_sheep(), 0)
 
     def test_initial_sheep_can_not_be_placed_on_occupied_pasture(self):
         choice = self.get_free_edge_pasture()
-        self.game.make_initial_turn(choice)
+        self.game.click_on_pasture(choice)
         with self.assertRaises(ValueError):
-            self.game.make_initial_turn(choice)
+            self.game.click_on_pasture(choice)
 
     def test_omputer_can_make_separate_initial_turn(self):
         players_initial_pasture = self.play_initial_turn()

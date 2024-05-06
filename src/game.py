@@ -1,20 +1,15 @@
 from typing import List
 from constants import (
-    BOARD_HEIGHT,
-    BOARD_WIDTH,
     COMPUTER,
-    INITIAL_POSITION,
-    INITIAL_SHEEP,
-    MINIMAL_RADIUS,
-    PASTURE_RADIUS,
-    PLAYER,
+    PLAYER
 )
 from pasture import Pasture
 
 
 class Game:
-    def __init__(self) -> None:
-        self.pastures: List[Pasture] = self._init_pastures()
+    def __init__(self, pastures: List[Pasture], initial_sheep: int) -> None:
+        self.pastures: List[Pasture] = pastures
+        self._initial_sheep = initial_sheep
         self._turn: int = 1
         self.is_players_turn = True
         self._winner: int | None = None
@@ -22,32 +17,6 @@ class Game:
         self.target_pasture: Pasture | None = None
         self.latest_value: float = 0
         self.latest_computation_time: float = 0
-
-    def _init_pastures(self) -> List[Pasture]:
-        """Luodaan pelilaudan laitumet"""
-        leftmost_pasture = Pasture(INITIAL_POSITION)
-        pastures = [leftmost_pasture]
-
-        for y_axis in range(BOARD_HEIGHT):
-            if y_axis > 0:
-                position = leftmost_pasture.vertices[2]
-                leftmost_pasture = Pasture(position)
-                pastures.append(leftmost_pasture)
-
-            pasture = leftmost_pasture
-            for x_axis in range(BOARD_WIDTH - 1):
-                (x, y) = pasture.position
-                # Piirretään joka toinen laidun ylä- ja joka toinen alaviistoon edellisestä
-                if x_axis % 2 == 1:
-                    position = (x + PASTURE_RADIUS * 3 / 2,
-                                y - MINIMAL_RADIUS)
-                else:
-                    position = (x + PASTURE_RADIUS * 3 / 2,
-                                y + MINIMAL_RADIUS)
-                pasture = Pasture(position)
-                pastures.append(pasture)
-
-        return pastures
 
     # Syötteet
 
@@ -270,7 +239,7 @@ class Game:
         """Asettaa aloituslampaat annetulle laitumelle"""
         if pasture.is_potential_initial_pasture(self.pastures):
             pasture.occupy(
-                PLAYER if self.is_players_turn else COMPUTER, INITIAL_SHEEP)
+                PLAYER if self.is_players_turn else COMPUTER, self._initial_sheep)
         else:
             raise ValueError(
                 'The given pasture is not suitable for placing sheep.')
