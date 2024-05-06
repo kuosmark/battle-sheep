@@ -2,39 +2,24 @@ from typing import Tuple
 import unittest
 from constants import (
     ALPHA,
-    AMOUNT_OF_PASTURES,
-    BETA
+    BETA,
+    COMPUTER,
+    PLAYER
 )
 from minimax import (get_possible_moves, minimax)
 from game import Game
-from utils import init_pastures
 
 
-class TestGame(unittest.TestCase):
+BOARD_HEIGHT = 4
+BOARD_WIDTH = 4
+AMOUNT_OF_PASTURES = BOARD_HEIGHT * BOARD_WIDTH
+
+
+class TestMinimax(unittest.TestCase):
     def setUp(self) -> None:
-        self.initial_sheep = 8
-        self.game = Game(init_pastures(
-            board_height=4,
-            board_width=4),
-            initial_sheep=self.initial_sheep)
+        self.game = Game(BOARD_HEIGHT, BOARD_WIDTH)
 
     # Apumetodit
-
-    def play_game_for_turns(self, turns: int) -> None:
-        for _ in range(turns):
-            possible_next_moves = get_possible_moves(self.game)
-            if len(possible_next_moves) > 0:
-                self.game = possible_next_moves[0]
-
-    def play_game_using_minimax_for_turns(self, turns: int, player_depth: int, computer_depth: int) -> None:
-        for _ in range(turns):
-            print(str(self.game.evaluate_game_state()))
-            print('Pelaaja' + str(self.game.get_amount_of_pastures_occupied_by_player()))
-            print(str(self.game.get_amount_of_pastures_occupied_by_computer()))
-            depth = player_depth if self.game.is_players_turn else computer_depth
-            _, next_move = minimax(self.game, depth, ALPHA, BETA)
-            if next_move is not None:
-                self.game = next_move
 
     def get_amount_of_players_sheep(self) -> int:
         return sum(p.get_amount_of_sheep() for p in self.game.get_pastures_occupied_by_player())
@@ -74,6 +59,54 @@ class TestGame(unittest.TestCase):
         return self.are_the_same_first_move(move_1, move_2) and move_1.get_pastures_occupied_by_computer()[
             0] == move_2.get_pastures_occupied_by_computer()[0]
 
+    def make_best_next_move(self) -> None:
+        possible_next_moves = get_possible_moves(self.game)
+        if len(possible_next_moves) > 0:
+            self.game = possible_next_moves[0]
+
+    def make_best_move_using_minimax(self, depth: int) -> None:
+        _, next_move = minimax(self.game, depth, ALPHA, BETA)
+        if next_move is not None:
+            self.game = next_move
+
+    def make_worst_next_move(self) -> None:
+        possible_next_moves = get_possible_moves(self.game)
+        if len(possible_next_moves) > 0:
+            self.game = possible_next_moves[-1]
+
+    def play_game_for_turns(self, turns: int) -> None:
+        for _ in range(turns):
+            self.make_best_next_move()
+
+    def play_game_against_the_worst(self, worst: int) -> None:
+        player_is_the_worst = PLAYER == worst
+        for _ in range(1, AMOUNT_OF_PASTURES):
+            if player_is_the_worst == self.game.is_players_turn:
+                self.make_worst_next_move()
+            else:
+                self.make_best_next_move()
+
+    def play_game_using_minimax(self, player_depth: int, computer_depth: int) -> None:
+        for _ in range(AMOUNT_OF_PASTURES):
+            depth = player_depth if self.game.is_players_turn else computer_depth
+            self.make_best_move_using_minimax(depth)
+
+    def play_game_using_minimax_against_the_best(self, best: int, depth: int) -> None:
+        player_is_the_best = PLAYER == best
+        for _ in range(1, AMOUNT_OF_PASTURES):
+            if player_is_the_best == self.game.is_players_turn:
+                self.make_best_next_move()
+            else:
+                self.make_best_move_using_minimax(depth)
+
+    def play_game_using_minimax_against_the_worst(self, worst: int, depth: int) -> None:
+        player_is_the_worst = PLAYER == worst
+        for _ in range(1, AMOUNT_OF_PASTURES):
+            if player_is_the_worst == self.game.is_players_turn:
+                self.make_worst_next_move()
+            else:
+                self.make_best_move_using_minimax(depth)
+
         # Testit
 
     def test_correct_amounts_of_possible_initial_moves_are_found(self):
@@ -97,21 +130,21 @@ class TestGame(unittest.TestCase):
     def test_total_amount_of_sheep_does_not_change(self):
         self.play_game_for_turns(2)
         self.assertEqual(self.get_amount_of_players_sheep(),
-                         self.initial_sheep)
+                         self.game.initial_sheep)
         self.assertEqual(self.get_amount_of_computers_sheep(),
-                         self.initial_sheep)
+                         self.game.initial_sheep)
 
         self.play_game_for_turns(2)
         self.assertEqual(self.get_amount_of_players_sheep(),
-                         self.initial_sheep)
+                         self.game.initial_sheep)
         self.assertEqual(self.get_amount_of_computers_sheep(),
-                         self.initial_sheep)
+                         self.game.initial_sheep)
 
         self.play_game_for_turns(2)
         self.assertEqual(self.get_amount_of_players_sheep(),
-                         self.initial_sheep)
+                         self.game.initial_sheep)
         self.assertEqual(self.get_amount_of_computers_sheep(),
-                         self.initial_sheep)
+                         self.game.initial_sheep)
 
     def test_turns_are_calculated_correctly(self):
         self.play_game_for_turns(1)
@@ -150,11 +183,49 @@ class TestGame(unittest.TestCase):
         self.assertEqual(value, best_value)
         self.assertTrue(self.are_the_same_second_move(move, best_move))
 
-    def test_player_that_searches_deeper_wins(self):
-        self.play_game_using_minimax_for_turns(
-            AMOUNT_OF_PASTURES, player_depth=2, computer_depth=1)
-        self.assertTrue(self.game.is_over())
-        self.assertFalse(self.game.is_player_the_winner())
+    def test_minimax_returns_the_best_move_on_turn_5(self):
+        self.play_game_for_turns(4)
+        value, move = minimax(self.game, 1, ALPHA, BETA)
+        best_value, best_move = self.get_move_with_highest_value((self.game))
+        self.assertEqual(value, best_value)
+        self.assertTrue(self.are_the_same_second_move(move, best_move))
 
-    # TESTAA MITEN TEKOÄLYT PELAAVAT TOISIAAN VASTAAN
-    # PAREMMAN PITÄISI AINA VOITTAA
+    def test_making_the_best_move_beats_opponent_making_the_worst_move_when_worst_plays_first(self):
+        self.play_game_against_the_worst(COMPUTER)
+        self.assertTrue(self.game.is_over())
+        self.assertEqual(self.game.calculate_winner(), PLAYER)
+
+    def test_making_the_best_move_beats_opponent_making_the_worst_move_when_best_plays_first(self):
+        self.play_game_against_the_worst(PLAYER)
+        self.assertTrue(self.game.is_over())
+        self.assertEqual(self.game.calculate_winner(), COMPUTER)
+
+    def test_minimax_beats_opponent_making_the_worst_move_when_it_plays_first(self):
+        self.play_game_using_minimax_against_the_worst(COMPUTER, depth=3)
+        self.assertTrue(self.game.is_over())
+        self.assertEqual(self.game.calculate_winner(), PLAYER)
+
+    def test_minimax_beats_opponent_making_the_worst_move_when_it_plays_second(self):
+        self.play_game_using_minimax_against_the_worst(PLAYER, depth=3)
+        self.assertTrue(self.game.is_over())
+        self.assertEqual(self.game.calculate_winner(), COMPUTER)
+
+    def test_minimax_beats_opponent_making_the_best_move_when_it_plays_first(self):
+        self.play_game_using_minimax_against_the_best(COMPUTER, depth=3)
+        self.assertTrue(self.game.is_over())
+        self.assertEqual(self.game.calculate_winner(), PLAYER)
+
+    def test_minimax_beats_opponent_making_the_best_move_when_it_plays_second(self):
+        self.play_game_using_minimax_against_the_best(PLAYER, depth=3)
+        self.assertTrue(self.game.is_over())
+        self.assertEqual(self.game.calculate_winner(), COMPUTER)
+
+    def test_depth_3_minimax_beats_depth_1_minimax_when_it_plays_first(self):
+        self.play_game_using_minimax(player_depth=3, computer_depth=1)
+        self.assertTrue(self.game.is_over())
+        self.assertEqual(self.game.calculate_winner(), PLAYER)
+
+    def test_depth_3_minimax_beats_depth_1_minimax_when_it_plays_second(self):
+        self.play_game_using_minimax(player_depth=1, computer_depth=3)
+        self.assertTrue(self.game.is_over())
+        self.assertEqual(self.game.calculate_winner(), COMPUTER)

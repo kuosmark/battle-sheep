@@ -33,3 +33,10 @@ def init_pastures(board_height: int, board_width: int) -> List[Pasture]:
             pastures.append(pasture)
 
     return pastures
+
+
+def calculate_initial_sheep(board_height: int, board_width: int) -> int:
+    amount_of_pastures = board_height * board_width
+    if amount_of_pastures % 2 != 0:
+        raise ValueError('Invalid board dimensions')
+    return int(amount_of_pastures / 2)
