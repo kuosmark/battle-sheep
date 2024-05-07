@@ -7,7 +7,6 @@ def main(is_simulation: bool):
 
     while ui.is_running:
         ui.play_game()
-        ui.render()
 
 
 if __name__ == '__main__':

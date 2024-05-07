@@ -30,6 +30,11 @@ class TestMinimax(unittest.TestCase):
         self.game.is_players_turn = was_players_turn
         return possible_moves
 
+    def is_over_for_opponent(self) -> bool:
+        if self.game.is_players_turn:
+            return self.game.is_over_for_computer()
+        return self.game.is_over_for_player()
+
     def get_amount_of_players_sheep(self) -> int:
         return sum(p.get_amount_of_sheep() for p in self.game.get_pastures_occupied_by_player())
 
@@ -180,6 +185,34 @@ class TestMinimax(unittest.TestCase):
         self.play_game_for_turns(1)
         self.assertFalse(self.game.is_in_initial_placement())
         self.assertTrue(self.game.is_players_turn)
+
+        self.play_game_for_turns(1)
+        self.assertFalse(self.game.is_players_turn)
+
+        self.play_game_for_turns(1)
+        self.assertTrue(self.game.is_players_turn)
+
+    def test_turn_changes_to_opponent_if_is_not_over_for_player(self):
+        self.play_game_for_turns(3)
+        is_players_turn = self.game.is_players_turn
+
+        self.play_game_for_turns(1)
+        self.assertTrue(self.game.is_players_turn != is_players_turn
+                        or self.is_over_for_opponent())
+
+        self.play_game_for_turns(2)
+        is_players_turn = self.game.is_players_turn
+
+        self.play_game_for_turns(1)
+        self.assertTrue(self.game.is_players_turn != is_players_turn
+                        or self.is_over_for_opponent())
+
+        self.play_game_for_turns(1)
+        is_players_turn = self.game.is_players_turn
+
+        self.play_game_for_turns(1)
+        self.assertTrue(self.game.is_players_turn != is_players_turn
+                        or self.is_over_for_opponent())
 
     def test_correct_amount_of_pastures_are_occupied(self):
         self.assertEqual(len(self.game.get_occupied_pastures()), 0)

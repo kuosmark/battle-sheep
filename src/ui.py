@@ -86,41 +86,14 @@ class Ui:
 
     def _handle_input(self, event):
         """Käsitellään pelaajan syötteet"""
-        if event.type == pygame.QUIT:
-            self._exit()
-        if not self._is_simulation:
-            if self._is_left_button_pressed(event):
-                self._game.click_on_pasture(
-                    self._get_pasture_in_mouse_position())
-            elif self._is_right_button_or_enter_pressed(event):
-                self._game.press_enter()
-            elif self._is_mouse_wheel_scrolled_up(event):
-                self._game.scroll_up()
-            elif self._is_mouse_wheel_scrolled_down(event):
-                self._game.scroll_down()
-
-    def _update_game_state(self):
-        start_time = time.time()
-
-        depth = SIMULATED_PLAYER_DEPTH if self._game.is_players_turn else DEPTH
-        game_value, next_game_state = minimax(self._game, depth, ALPHA, BETA)
-
-        elapsed_time = time.time() - start_time
-        # Varmistetaan, että siirrossa kestää vähintään sekunti
-        if elapsed_time < 1:
-            time.sleep(1 - elapsed_time)
-
-        if next_game_state is not None:
-            self._game = next_game_state
-            self._game.latest_value = game_value
-            self._game.latest_computation_time = elapsed_time
-
-    def play_game(self) -> None:
-        if self._game.can_start_computers_turn() or (
-                self._is_simulation and self._game.can_start_players_turn()):
-            self._update_game_state()
-        for event in pygame.event.get():
-            self._handle_input(event)
+        if self._is_left_button_pressed(event):
+            self._game.click_on_pasture(self._get_pasture_in_mouse_position())
+        elif self._is_right_button_or_enter_pressed(event):
+            self._game.press_enter()
+        elif self._is_mouse_wheel_scrolled_up(event):
+            self._game.scroll_up()
+        elif self._is_mouse_wheel_scrolled_down(event):
+            self._game.scroll_down()
 
     # Näyttö
 
@@ -235,8 +208,43 @@ class Ui:
         for pasture in self._game.pastures:
             self._render_pasture(pasture, mouse_position)
 
-    def render(self):
+    def _render(self):
         self._render_board()
         self._render_sidebar()
         pygame.display.flip()
         self._clock.tick(60)
+
+    # Pelin suoritus
+
+    def _update_game_state(self):
+        start_time = time.time()
+
+        if self._is_simulation and self._game.is_players_turn:
+            depth = SIMULATED_PLAYER_DEPTH
+        else:
+            depth = DEPTH
+
+        game_value, next_game_state = minimax(self._game, depth, ALPHA, BETA)
+
+        elapsed_time = time.time() - start_time
+        # Varmistetaan, että siirrossa kestää vähintään sekunti
+        if elapsed_time < 1:
+            time.sleep(1 - elapsed_time)
+
+        if next_game_state is None:
+            raise SystemError('No next move found')
+
+        self._game = next_game_state
+        self._game.latest_value = game_value
+        self._game.latest_computation_time = elapsed_time
+
+    def play_game(self) -> None:
+        self._render()
+        if self._game.is_next_move_calculated(self._is_simulation):
+            self._update_game_state()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self._exit()
+            if self._game.is_input_allowed(self._is_simulation):
+                self._handle_input(event)
