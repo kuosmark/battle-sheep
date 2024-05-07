@@ -23,8 +23,10 @@ class Game:
     # Syötteet
 
     def click_on_pasture(self, pasture: Pasture | None) -> None:
-        if pasture and self.is_in_initial_placement():
+        if self.is_in_initial_placement(
+        ) and pasture and pasture.is_potential_initial_pasture(self.pastures):
             self.make_initial_turn(pasture)
+            self.latest_value = self.evaluate_game_state()
         elif pasture and self._sheep_can_be_moved_this_turn(pasture):
             self._choose_pasture(pasture)
         elif pasture and pasture.is_targeted and self.chosen_pasture is not None:
@@ -52,14 +54,22 @@ class Game:
     def is_in_initial_placement(self) -> bool:
         return self._turn <= 2
 
-    def can_start_players_turn(self) -> bool:
-        return self.is_players_turn and not self.is_over_for_player()
-
     def is_computers_turn(self) -> bool:
         return not self.is_players_turn
 
-    def can_start_computers_turn(self) -> bool:
-        return self.is_computers_turn() and not self.is_over_for_computer()
+    def is_input_allowed(self, is_simulation: bool) -> bool:
+        if is_simulation:
+            return False
+        if not self.is_players_turn:
+            return False
+        return not self.is_over_for_player()
+
+    def is_next_move_calculated(self, is_simulation: bool) -> bool:
+        if self.is_players_turn:
+            if is_simulation:
+                return not self.is_over_for_player()
+            return False
+        return not self.is_over_for_computer()
 
     def next_turn(self) -> None:
         if self.is_over_for_computer():
@@ -239,12 +249,8 @@ class Game:
 
     def _place_initial_sheep(self, pasture: Pasture) -> None:
         """Asettaa aloituslampaat annetulle laitumelle"""
-        if pasture.is_potential_initial_pasture(self.pastures):
-            pasture.occupy(
-                PLAYER if self.is_players_turn else COMPUTER, self.initial_sheep)
-        else:
-            raise ValueError(
-                'The given pasture is not suitable for placing sheep.')
+        pasture.occupy(
+            PLAYER if self.is_players_turn else COMPUTER, self.initial_sheep)
 
     def _add_sheep_to_planned_move(self):
         if self._are_pastures_chosen() and self.chosen_pasture.get_amount_of_planned_sheep() >= 2:
