@@ -81,11 +81,19 @@ class Pasture:
         self.is_targeted = False
 
     def get_value(self, pastures: List[Pasture]) -> int:
-        different_moves_possible = self.get_amount_of_potential_targets(
-            pastures) * self.get_amount_of_sheep() - 1
+        sheep_able_to_move = self.get_amount_of_sheep() - 1
+        if sheep_able_to_move < 1:
+            return 0
+
+        potential_targets = self.get_amount_of_potential_targets(
+            pastures)
+        if potential_targets < 1:
+            return 0
+
+        amount_of_possible_moves = sheep_able_to_move * potential_targets
         if self.is_occupied_by_player():
-            return different_moves_possible
-        return -abs(different_moves_possible)
+            return amount_of_possible_moves
+        return -amount_of_possible_moves
 
         # Laitumen naapurit
 

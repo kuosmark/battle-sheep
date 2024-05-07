@@ -21,6 +21,15 @@ class TestMinimax(unittest.TestCase):
 
     # Apumetodit
 
+    def get_amount_of_possible_moves_for(self, player: int) -> int:
+        was_players_turn = self.game.is_players_turn
+
+        self.game.is_players_turn = player == PLAYER
+        possible_moves = len(get_possible_moves(self.game))
+
+        self.game.is_players_turn = was_players_turn
+        return possible_moves
+
     def get_amount_of_players_sheep(self) -> int:
         return sum(p.get_amount_of_sheep() for p in self.game.get_pastures_occupied_by_player())
 
@@ -107,7 +116,7 @@ class TestMinimax(unittest.TestCase):
             else:
                 self.make_best_move_using_minimax(depth)
 
-        # Testit
+    # Testit
 
     def test_correct_amounts_of_possible_initial_moves_are_found(self):
         amount_of_edge_pastures = self.game.get_amount_of_edge_pastures()
@@ -126,6 +135,23 @@ class TestMinimax(unittest.TestCase):
         _, best_second_move = self.get_move_with_lowest_value(best_first_move)
         self.assertTrue(self.are_the_same_second_move(
             best_second_move, get_possible_moves(best_first_move)[0]))
+
+    def test_game_value_is_evaluated_correclty(self):
+        self.assertEqual(self.game.evaluate_game_state(), 0)
+        self.play_game_for_turns(2)
+        game_value = self.get_amount_of_possible_moves_for(
+            PLAYER) - self.get_amount_of_possible_moves_for(COMPUTER)
+        self.assertEqual(self.game.evaluate_game_state(), game_value)
+
+        self.play_game_for_turns(2)
+        game_value = self.get_amount_of_possible_moves_for(
+            PLAYER) - self.get_amount_of_possible_moves_for(COMPUTER)
+        self.assertEqual(self.game.evaluate_game_state(), game_value)
+
+        self.play_game_for_turns(1)
+        game_value = self.get_amount_of_possible_moves_for(
+            PLAYER) - self.get_amount_of_possible_moves_for(COMPUTER)
+        self.assertEqual(self.game.evaluate_game_state(), game_value)
 
     def test_total_amount_of_sheep_does_not_change(self):
         self.play_game_for_turns(2)

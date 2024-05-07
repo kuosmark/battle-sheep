@@ -404,3 +404,41 @@ class TestGame(unittest.TestCase):
         self.assertEqual(self.game.get_players_largest_herd(), 1)
         self.assertGreaterEqual(self.game.get_computers_largest_herd(), 2)
         self.assertEqual(self.game.calculate_who_has_largest_herd(), COMPUTER)
+
+    def test_pasture_value_is_calculated_correctly_for_players_pasture(self):
+        pasture = self.get_free_edge_pasture()
+        self.assertEqual(pasture.get_value(self.game.pastures), 0)
+
+        pasture.occupy(PLAYER, 1)
+        self.assertEqual(pasture.get_value(self.game.pastures), 0)
+
+        pasture.reset()
+        pasture.occupy(PLAYER, 5)
+        amount_of_potential_targets = pasture.get_amount_of_potential_targets(
+            self.game.pastures)
+        self.assertEqual(pasture.get_value(self.game.pastures),
+                         4 * amount_of_potential_targets)
+
+        pasture.reset()
+        pasture.occupy(PLAYER, 10)
+        self.assertEqual(pasture.get_value(self.game.pastures),
+                         9 * amount_of_potential_targets)
+
+    def test_pasture_value_is_calculated_correctly_for_computers_pasture(self):
+        pasture = self.get_free_edge_pasture()
+        self.assertEqual(pasture.get_value(self.game.pastures), 0)
+
+        pasture.occupy(COMPUTER, 1)
+        self.assertEqual(pasture.get_value(self.game.pastures), 0)
+
+        pasture.reset()
+        pasture.occupy(COMPUTER, 5)
+        amount_of_potential_targets = pasture.get_amount_of_potential_targets(
+            self.game.pastures)
+        self.assertEqual(pasture.get_value(self.game.pastures),
+                         -4 * amount_of_potential_targets)
+
+        pasture.reset()
+        pasture.occupy(COMPUTER, 10)
+        self.assertEqual(pasture.get_value(self.game.pastures),
+                         -9 * amount_of_potential_targets)
