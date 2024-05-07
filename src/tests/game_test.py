@@ -479,3 +479,18 @@ class TestGame(unittest.TestCase):
         pasture.occupy(COMPUTER, 10)
         self.assertEqual(pasture.get_value(self.game.pastures),
                          -9 * amount_of_potential_targets)
+
+    def test_game_value_is_calculated_correctly(self):
+        pasture = self.get_free_edge_pasture()
+        pasture.occupy(PLAYER, 10)
+
+        second_pasture = self.get_free_edge_pasture()
+        second_pasture.occupy(COMPUTER, 5)
+
+        amount_of_players_targets = pasture.get_amount_of_potential_targets(
+            self.game.pastures)
+        amount_of_computers_targets = second_pasture.get_amount_of_potential_targets(
+            self.game.pastures)
+
+        self.assertEqual(self.game.evaluate_game_state(),
+                         9 * amount_of_players_targets - 4 * amount_of_computers_targets)
