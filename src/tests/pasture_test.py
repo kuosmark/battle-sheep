@@ -38,3 +38,6 @@ class TestPasture(unittest.TestCase):
         self.assertTrue(self.pasture.is_free())
         self.assertEqual(self.pasture.get_amount_of_sheep(), 0)
         self.assertEqual(self.pasture.get_amount_of_planned_sheep(), 0)
+
+    def test_value_of_pasture_without_neighbours_is_zero(self):
+        self.assertEqual(self.pasture.get_value([self.pasture]), 0)
