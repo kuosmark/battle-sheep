@@ -217,16 +217,15 @@ class Ui:
     # Pelin suoritus
 
     def _update_game_state(self):
-        start_time = time.time()
-
         if self._is_simulation and self._game.is_players_turn:
             depth = SIMULATED_PLAYER_DEPTH
         else:
             depth = DEPTH
 
-        game_value, next_game_state = minimax(self._game, depth, ALPHA, BETA)
-
+        start_time = time.time()
+        _, next_game_state = minimax(self._game, depth, ALPHA, BETA)
         elapsed_time = time.time() - start_time
+
         # Varmistetaan, että siirrossa kestää vähintään sekunti
         if elapsed_time < 1:
             time.sleep(1 - elapsed_time)
@@ -235,7 +234,7 @@ class Ui:
             raise SystemError('No next move found')
 
         self._game = next_game_state
-        self._game.latest_value = game_value
+        self._game.latest_value = next_game_state.evaluate_game_state()
         self._game.latest_computation_time = elapsed_time
 
     def play_game(self) -> None:
