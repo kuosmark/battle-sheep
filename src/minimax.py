@@ -35,7 +35,7 @@ def minimax(game: Game, depth: int, alpha: float, beta: float) -> Tuple[float, G
         best_value = float('-Inf')
         for move in possible_moves:
             value, _ = minimax(move, depth - 1, alpha, beta)
-            if value > best_value:
+            if value >= best_value:
                 best_value = value
                 best_move = move
 
@@ -46,7 +46,7 @@ def minimax(game: Game, depth: int, alpha: float, beta: float) -> Tuple[float, G
         best_value = float('Inf')
         for move in possible_moves:
             value, _ = minimax(move, depth - 1, alpha, beta)
-            if value < best_value:
+            if value <= best_value:
                 best_value = value
                 best_move = move
 
