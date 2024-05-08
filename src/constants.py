@@ -49,5 +49,5 @@ PLAYER = 0
 COMPUTER = 1
 
 # Algoritmi
-ALPHA = float('-Inf')
-BETA = float('Inf')
+ALPHA = float('-inf')
+BETA = float('inf')

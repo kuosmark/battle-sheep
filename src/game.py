@@ -120,23 +120,17 @@ class Game:
 
     # Heuristiikka
 
-    def calculate_player_won(self) -> bool:
-        player_won = self.is_over_for_computer() and self.calculate_winner() == PLAYER
-        if player_won:
-            self._winner = PLAYER
-        return player_won
+    def _calculate_player_won(self) -> bool:
+        return self.is_over_for_computer() and self.calculate_winner() == PLAYER
 
-    def calculate_computer_won(self) -> bool:
-        computer_won = self.is_over_for_player() and self.calculate_winner() == COMPUTER
-        if computer_won:
-            self._winner = COMPUTER
-        return computer_won
+    def _calculate_computer_won(self) -> bool:
+        return self.is_over_for_player() and self.calculate_winner() == COMPUTER
 
     def evaluate_game_state(self) -> float:
-        if self.calculate_player_won():
-            return float('Inf')
-        if self.calculate_computer_won():
-            return float('-Inf')
+        if self._calculate_player_won():
+            return float('inf')
+        if self._calculate_computer_won():
+            return float('-inf')
 
         return sum(pasture.get_value(self.pastures) for pasture in self.get_potential_sheep_to_move())
 

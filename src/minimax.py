@@ -32,7 +32,7 @@ def minimax(game: Game, depth: int, alpha: float, beta: float) -> Tuple[float, G
     best_move: Game | None = None
 
     if game.is_players_turn:
-        best_value = float('-Inf')
+        best_value = float('-inf')
         for move in possible_moves:
             value, _ = minimax(move, depth - 1, alpha, beta)
             if value >= best_value:
@@ -43,7 +43,7 @@ def minimax(game: Game, depth: int, alpha: float, beta: float) -> Tuple[float, G
                 break
             alpha = max(alpha, best_value)
     else:
-        best_value = float('Inf')
+        best_value = float('inf')
         for move in possible_moves:
             value, _ = minimax(move, depth - 1, alpha, beta)
             if value <= best_value:
