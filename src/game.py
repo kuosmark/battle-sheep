@@ -1,17 +1,20 @@
 from typing import List
 from constants import (
     COMPUTER,
-    PLAYER
+    DEPTH,
+    PLAYER,
+    SIMULATED_PLAYER_DEPTH
 )
 from pasture import Pasture
 from utils import calculate_initial_sheep, init_pastures
 
 
 class Game:
-    def __init__(self, board_height: int, board_width: int) -> None:
+    def __init__(self, board_height: int, board_width: int, is_simulation: bool) -> None:
         self.pastures: List[Pasture] = init_pastures(board_height, board_width)
         self.initial_sheep: int = calculate_initial_sheep(
             board_height, board_width)
+        self._is_simulation = is_simulation
         self._turn: int = 1
         self.is_players_turn = True
         self._winner: int | None = None
@@ -57,16 +60,16 @@ class Game:
     def is_computers_turn(self) -> bool:
         return not self.is_players_turn
 
-    def is_input_allowed(self, is_simulation: bool) -> bool:
-        if is_simulation:
+    def is_input_allowed(self) -> bool:
+        if self._is_simulation:
             return False
         if not self.is_players_turn:
             return False
         return not self.is_over_for_player()
 
-    def is_next_move_calculated(self, is_simulation: bool) -> bool:
+    def is_next_move_calculated(self) -> bool:
         if self.is_players_turn:
-            if is_simulation:
+            if self._is_simulation:
                 return not self.is_over_for_player()
             return False
         return not self.is_over_for_computer()
@@ -95,6 +98,11 @@ class Game:
             self.is_players_turn = False
         else:
             self.is_players_turn = not self.is_players_turn
+
+    def get_depth(self) -> int:
+        if self._is_simulation and self.is_players_turn:
+            return SIMULATED_PLAYER_DEPTH
+        return DEPTH
 
     # Muuttujien nollaus
 
@@ -262,6 +270,8 @@ class Game:
         return self.get_amount_of_pastures_occupied_by_player() == self.get_amount_of_pastures_occupied_by_computer()
 
     def is_focused(self, pasture: Pasture, pointed_at: bool) -> bool:
+        if self._is_simulation:
+            return False
         if self._winner is not None:
             return False
         if (pasture is self.chosen_pasture or

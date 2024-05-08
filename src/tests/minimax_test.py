@@ -17,7 +17,7 @@ AMOUNT_OF_PASTURES = BOARD_HEIGHT * BOARD_WIDTH
 
 class TestMinimax(unittest.TestCase):
     def setUp(self) -> None:
-        self.game = Game(BOARD_HEIGHT, BOARD_WIDTH)
+        self.game = Game(BOARD_HEIGHT, BOARD_WIDTH, is_simulation=False)
 
     # Apumetodit
 

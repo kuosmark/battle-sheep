@@ -26,7 +26,6 @@ from constants import (
     SIDEBAR_DIVIDER,
     SIDEBAR_FONT_SIZE,
     SIDEBAR_MARGIN,
-    SIMULATED_PLAYER_DEPTH,
     WHITE
 )
 from game import Game
@@ -38,8 +37,7 @@ class Ui:
     def __init__(self, is_simulation: bool) -> None:
         pygame.init()
         self.is_running = True
-        self._is_simulation = is_simulation
-        self._game = Game(BOARD_HEIGHT, BOARD_WIDTH)
+        self._game = Game(BOARD_HEIGHT, BOARD_WIDTH, is_simulation)
         self._clock = pygame.time.Clock()
         self._screen = pygame.display.set_mode(DISPLAY_SIZE)
         self._board_font = pygame.font.SysFont(
@@ -173,8 +171,7 @@ class Ui:
         if pasture.is_occupied_by_computer():
             color = COMPUTERS_PASTURE_COLOR
 
-        if (not self._is_simulation and
-                self._game.is_focused(pasture, pasture.collide_with_point(mouse))):
+        if self._game.is_focused(pasture, pasture.collide_with_point(mouse)):
             return tuple(x + HIGHLIGHT_OFFSET if x + HIGHLIGHT_OFFSET < 255 else 255 for x in color)
 
         return color
@@ -217,13 +214,11 @@ class Ui:
     # Pelin suoritus
 
     def _update_game_state(self):
-        if self._is_simulation and self._game.is_players_turn:
-            depth = SIMULATED_PLAYER_DEPTH
-        else:
-            depth = DEPTH
-
         start_time = time.time()
-        _, next_game_state = minimax(self._game, depth, ALPHA, BETA)
+
+        _, next_game_state = minimax(
+            self._game, self._game.get_depth(), ALPHA, BETA)
+
         elapsed_time = time.time() - start_time
 
         # Varmistetaan, että siirrossa kestää vähintään sekunti
@@ -238,14 +233,14 @@ class Ui:
         self._game.latest_computation_time = elapsed_time
 
     def play_game(self) -> None:
-        if self._game.is_next_move_calculated(self._is_simulation):
+        if self._game.is_next_move_calculated():
             self._update_game_state()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self._exit()
 
-            if self._game.is_input_allowed(self._is_simulation):
+            if self._game.is_input_allowed():
                 self._handle_input(event)
 
         self._render()
