@@ -65,14 +65,6 @@ class TestMinimax(unittest.TestCase):
                 best_move = move
         return lowest_value, best_move
 
-    def are_the_same_first_move(self, move_1: Game, move_2: Game) -> bool:
-        return move_1.get_pastures_occupied_by_player()[
-            0] == move_2.get_pastures_occupied_by_player()[0]
-
-    def are_the_same_second_move(self, move_1: Game, move_2: Game) -> bool:
-        return self.are_the_same_first_move(move_1, move_2) and move_1.get_pastures_occupied_by_computer()[
-            0] == move_2.get_pastures_occupied_by_computer()[0]
-
     def make_best_next_move(self) -> None:
         possible_next_moves = get_possible_moves(self.game)
         if len(possible_next_moves) > 0:
@@ -133,13 +125,14 @@ class TestMinimax(unittest.TestCase):
                          amount_of_edge_pastures - 1)
 
     def test_possible_moves_are_sorted_best_first(self):
-        _, best_first_move = self.get_move_with_highest_value((self.game))
-        self.assertTrue(self.are_the_same_first_move(
-            best_first_move, get_possible_moves(self.game)[0]))
+        best_value, best_first_move = self.get_move_with_highest_value(
+            (self.game))
+        self.assertEqual(best_value,
+                         get_possible_moves(self.game)[0].evaluate_game_state())
 
-        _, best_second_move = self.get_move_with_lowest_value(best_first_move)
-        self.assertTrue(self.are_the_same_second_move(
-            best_second_move, get_possible_moves(best_first_move)[0]))
+        best_value, _ = self.get_move_with_lowest_value(best_first_move)
+        self.assertEqual(best_value,
+                         get_possible_moves(best_first_move)[0].evaluate_game_state())
 
     def test_game_value_is_evaluated_correclty(self):
         self.assertEqual(self.game.evaluate_game_state(), 0)
@@ -157,10 +150,6 @@ class TestMinimax(unittest.TestCase):
         game_value = self.get_amount_of_possible_moves_for(
             PLAYER) - self.get_amount_of_possible_moves_for(COMPUTER)
         self.assertEqual(self.game.evaluate_game_state(), game_value)
-
-    def test_game_value_is_evaluated_correclty_when_game_is_over(self):
-        self.play_game_for_turns(AMOUNT_OF_PASTURES)
-        self.assertEqual(self.game.evaluate_game_state(), 0)
 
     def test_total_amount_of_sheep_does_not_change(self):
         self.play_game_for_turns(2)
@@ -232,63 +221,69 @@ class TestMinimax(unittest.TestCase):
         self.assertTrue(self.game.is_over())
 
     def test_minimax_returns_the_best_initial_move_for_player_when_using_depth_1(self):
-        value, move = minimax(self.game, 1, ALPHA, BETA)
+        _, move = minimax(self.game, 1, ALPHA, BETA)
 
-        best_value, best_move = self.get_move_with_highest_value((self.game))
-        self.assertEqual(value, best_value)
-        self.assertTrue(self.are_the_same_first_move(move, best_move))
+        best_value, _ = self.get_move_with_highest_value((self.game))
+        self.assertEqual(move.evaluate_game_state(), best_value)
 
     def test_minimax_returns_the_best_initial_move_for_computer_when_using_depth_1(self):
         self.play_game_for_turns(1)
-        value, move = minimax(self.game, 1, ALPHA, BETA)
+        _, move = minimax(self.game, 1, ALPHA, BETA)
 
-        best_value, best_move = self.get_move_with_lowest_value((self.game))
-        self.assertEqual(value, best_value)
-        self.assertTrue(self.are_the_same_second_move(move, best_move))
+        best_value, _ = self.get_move_with_lowest_value((self.game))
+        self.assertEqual(move.evaluate_game_state(), best_value)
 
     def test_minimax_returns_the_best_move_on_turn_5(self):
         self.play_game_for_turns(4)
-        value, move = minimax(self.game, 1, ALPHA, BETA)
-        best_value, best_move = self.get_move_with_highest_value((self.game))
-        self.assertEqual(value, best_value)
-        self.assertTrue(self.are_the_same_second_move(move, best_move))
+        _, move = minimax(self.game, 1, ALPHA, BETA)
+
+        best_value, _ = self.get_move_with_highest_value((self.game))
+        self.assertEqual(move.evaluate_game_state(), best_value)
 
     def test_making_the_best_move_beats_opponent_making_the_worst_move_when_worst_plays_first(self):
         self.play_full_game_against_the_worst(COMPUTER)
         self.assertTrue(self.game.is_over())
         self.assertEqual(self.game.calculate_winner(), PLAYER)
+        self.assertEqual(self.game.evaluate_game_state(), float('Inf'))
 
     def test_making_the_best_move_beats_opponent_making_the_worst_move_when_best_plays_first(self):
         self.play_full_game_against_the_worst(PLAYER)
         self.assertTrue(self.game.is_over())
         self.assertEqual(self.game.calculate_winner(), COMPUTER)
+        self.assertEqual(self.game.evaluate_game_state(), float('-Inf'))
 
     def test_minimax_beats_opponent_making_the_worst_move_when_it_plays_first(self):
         self.play_full_game_using_minimax_against_the_worst(COMPUTER, depth=3)
         self.assertTrue(self.game.is_over())
         self.assertEqual(self.game.calculate_winner(), PLAYER)
+        self.assertEqual(self.game.evaluate_game_state(), float('Inf'))
 
     def test_minimax_beats_opponent_making_the_worst_move_when_it_plays_second(self):
         self.play_full_game_using_minimax_against_the_worst(PLAYER, depth=3)
         self.assertTrue(self.game.is_over())
         self.assertEqual(self.game.calculate_winner(), COMPUTER)
+        self.assertEqual(self.game.evaluate_game_state(), float('-Inf'))
 
     def test_minimax_beats_opponent_making_the_best_move_when_it_plays_first(self):
         self.play_full_game_using_minimax_against_the_best(COMPUTER, depth=3)
         self.assertTrue(self.game.is_over())
         self.assertEqual(self.game.calculate_winner(), PLAYER)
+        self.assertEqual(self.game.evaluate_game_state(), float('Inf'))
 
     def test_minimax_beats_opponent_making_the_best_move_when_it_plays_second(self):
         self.play_full_game_using_minimax_against_the_best(PLAYER, depth=3)
         self.assertTrue(self.game.is_over())
         self.assertEqual(self.game.calculate_winner(), COMPUTER)
+        self.assertEqual(self.game.evaluate_game_state(), float('-Inf'))
 
     def test_depth_3_minimax_beats_depth_1_minimax_when_it_plays_first(self):
         self.play_full_game_using_minimax(player_depth=3, computer_depth=1)
         self.assertTrue(self.game.is_over())
         self.assertEqual(self.game.calculate_winner(), PLAYER)
+        self.assertEqual(self.game.evaluate_game_state(), float('Inf'))
 
     def test_depth_3_minimax_beats_depth_1_minimax_when_it_plays_second(self):
         self.play_full_game_using_minimax(player_depth=1, computer_depth=3)
         self.assertTrue(self.game.is_over())
         self.assertEqual(self.game.calculate_winner(), COMPUTER)
+        self.assertEqual(self.game.evaluate_game_state(), float('-Inf'))

@@ -238,12 +238,14 @@ class Ui:
         self._game.latest_computation_time = elapsed_time
 
     def play_game(self) -> None:
-        self._render()
         if self._game.is_next_move_calculated(self._is_simulation):
             self._update_game_state()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self._exit()
+
             if self._game.is_input_allowed(self._is_simulation):
                 self._handle_input(event)
+
+        self._render()

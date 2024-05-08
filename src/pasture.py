@@ -23,9 +23,6 @@ class Pasture:
     def __post_init__(self):
         self.vertices = self._compute_vertices()
 
-    def __eq__(self, other):
-        return self.position == other.position and self.occupier == other.occupier and self.sheep == other.sheep
-
     def _compute_vertices(self) -> List[Tuple[float, float]]:
         """Palauttaa listan laitumen kärjistä koordinaattipareina"""
         x, y = self.position
