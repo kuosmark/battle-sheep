@@ -25,7 +25,8 @@ class TestMinimax(unittest.TestCase):
         was_players_turn = self.game.is_players_turn
 
         self.game.is_players_turn = player == PLAYER
-        possible_moves = len(get_possible_moves(self.game))
+        possible_moves = len(get_possible_moves(
+            self.game, self.game.is_players_turn))
 
         self.game.is_players_turn = was_players_turn
         return possible_moves
@@ -42,7 +43,7 @@ class TestMinimax(unittest.TestCase):
         return sum(p.get_amount_of_sheep() for p in self.game.get_pastures_occupied_by_computer())
 
     def get_move_with_highest_value(self, game: Game) -> Tuple[float, Game | None]:
-        possible_moves = get_possible_moves(game)
+        possible_moves = get_possible_moves(game, game.is_players_turn)
         highest_value = float('-inf')
         best_move: Game | None = None
 
@@ -54,7 +55,7 @@ class TestMinimax(unittest.TestCase):
         return highest_value, best_move
 
     def get_move_with_lowest_value(self, game: Game) -> Tuple[float, Game | None]:
-        possible_moves = get_possible_moves(game)
+        possible_moves = get_possible_moves(game, game.is_players_turn)
         lowest_value = float('inf')
         best_move: Game | None = None
 
@@ -66,17 +67,24 @@ class TestMinimax(unittest.TestCase):
         return lowest_value, best_move
 
     def make_best_next_move(self) -> None:
-        possible_next_moves = get_possible_moves(self.game)
+        possible_next_moves = get_possible_moves(
+            self.game, self.game.is_players_turn)
         if len(possible_next_moves) > 0:
             self.game = possible_next_moves[0]
 
+    def get_best_move_using_minimax(self, depth: int) -> Game | None:
+        _, move = minimax(
+            self.game, depth, ALPHA, BETA, self.game.is_players_turn)
+        return move
+
     def make_best_move_using_minimax(self, depth: int) -> None:
-        _, next_move = minimax(self.game, depth, ALPHA, BETA)
+        next_move = self.get_best_move_using_minimax(depth)
         if next_move is not None:
             self.game = next_move
 
     def make_worst_next_move(self) -> None:
-        possible_next_moves = get_possible_moves(self.game)
+        possible_next_moves = get_possible_moves(
+            self.game, self.game.is_players_turn)
         if len(possible_next_moves) > 0:
             self.game = possible_next_moves[-1]
 
@@ -121,7 +129,8 @@ class TestMinimax(unittest.TestCase):
             if player_is_the_worst == self.game.is_players_turn:
                 self.make_worst_next_move()
             else:
-                value, next_move = minimax(self.game, depth, ALPHA, BETA)
+                value, next_move = minimax(
+                    self.game, depth, ALPHA, BETA, self.game.is_players_turn)
                 if value == winning_value:
                     break
 
@@ -132,22 +141,25 @@ class TestMinimax(unittest.TestCase):
 
     def test_correct_amounts_of_possible_initial_moves_are_found(self):
         amount_of_edge_pastures = self.game.get_amount_of_edge_pastures()
-        possible_first_turns = get_possible_moves(self.game)
+        possible_first_turns = get_possible_moves(
+            self.game, self.game.is_players_turn)
         self.assertEqual(len(possible_first_turns), amount_of_edge_pastures)
 
-        possible_second_turns = get_possible_moves(possible_first_turns[0])
+        first_turn = possible_first_turns[0]
+        possible_second_turns = get_possible_moves(
+            first_turn, first_turn.is_players_turn)
         self.assertEqual(len(possible_second_turns),
                          amount_of_edge_pastures - 1)
 
     def test_possible_moves_are_sorted_best_first(self):
         best_value, best_first_move = self.get_move_with_highest_value(
             (self.game))
-        self.assertEqual(best_value,
-                         get_possible_moves(self.game)[0].evaluate_game_state())
+        self.assertEqual(best_value, get_possible_moves(self.game, self.game.is_players_turn
+                                                        )[0].evaluate_game_state())
 
         best_value, _ = self.get_move_with_lowest_value(best_first_move)
-        self.assertEqual(best_value,
-                         get_possible_moves(best_first_move)[0].evaluate_game_state())
+        self.assertEqual(best_value, get_possible_moves(best_first_move, best_first_move.is_players_turn
+                                                        )[0].evaluate_game_state())
 
     def test_game_value_is_evaluated_correclty(self):
         self.assertEqual(self.game.evaluate_game_state(), 0)
@@ -236,21 +248,21 @@ class TestMinimax(unittest.TestCase):
         self.assertTrue(self.game.is_over())
 
     def test_minimax_returns_the_best_initial_move_for_player_when_using_depth_1(self):
-        _, move = minimax(self.game, 1, ALPHA, BETA)
+        move = self.get_best_move_using_minimax(depth=1)
 
         best_value, _ = self.get_move_with_highest_value((self.game))
         self.assertEqual(move.evaluate_game_state(), best_value)
 
     def test_minimax_returns_the_best_initial_move_for_computer_when_using_depth_1(self):
         self.play_game_for_turns(1)
-        _, move = minimax(self.game, 1, ALPHA, BETA)
+        move = self.get_best_move_using_minimax(depth=1)
 
         best_value, _ = self.get_move_with_lowest_value((self.game))
         self.assertEqual(move.evaluate_game_state(), best_value)
 
     def test_minimax_returns_the_best_move_on_turn_5(self):
         self.play_game_for_turns(4)
-        _, move = minimax(self.game, 1, ALPHA, BETA)
+        move = self.get_best_move_using_minimax(depth=1)
 
         best_value, _ = self.get_move_with_highest_value((self.game))
         self.assertEqual(move.evaluate_game_state(), best_value)

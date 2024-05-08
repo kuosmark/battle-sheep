@@ -3,7 +3,7 @@ from typing import List, Tuple
 from game import Game
 
 
-def get_possible_moves(game: Game) -> List[Game]:
+def get_possible_moves(game: Game, max_player: bool) -> List[Game]:
     possible_moves: List[Game] = []
     if game.is_in_initial_placement():
         for pasture in game.get_potential_initial_pastures():
@@ -19,38 +19,42 @@ def get_possible_moves(game: Game) -> List[Game]:
                     game.undo_normal_turn(pasture, target_pasture, sheep)
 
     # Järjestetään mahdolliset siirrot heuristisen arvon mukaiseen paremmuusjärjestykseen
-    return sorted(possible_moves, key=lambda move: move.evaluate_game_state(), reverse=game.is_players_turn)
+    return sorted(possible_moves,
+                  key=lambda move: move.evaluate_game_state(),
+                  reverse=max_player)
 
 
-def minimax(game: Game, depth: int, alpha: float, beta: float) -> Tuple[float, Game | None]:
+def minimax(game: Game, depth: int, alpha: float, beta: float, max_player: bool
+            ) -> Tuple[float, Game | None]:
     # Palautetaan pelitilanteen arvo, mikäli päästiin annettuun syvyyteen
     # tai peli on ohi vuorossa olevalta pelaajalta
-    if depth == 0 or game.is_over_for_player_in_turn():
+    if depth == 0 or (max_player and game.is_over_for_player()
+                      ) or (not max_player and game.is_over_for_computer()):
         return game.evaluate_game_state(), None
 
-    possible_moves: List[Game] = get_possible_moves(game)
+    possible_moves: List[Game] = get_possible_moves(game, max_player)
     best_move: Game | None = None
 
-    if game.is_players_turn:
+    if max_player:
         best_value = float('-inf')
         for move in possible_moves:
-            value, _ = minimax(move, depth - 1, alpha, beta)
+            value, _ = minimax(move, depth - 1, alpha, beta, False)
             if value >= best_value:
                 best_value = value
                 best_move = move
 
-            if best_value > beta:
+            if best_value >= beta:
                 break
             alpha = max(alpha, best_value)
     else:
         best_value = float('inf')
         for move in possible_moves:
-            value, _ = minimax(move, depth - 1, alpha, beta)
+            value, _ = minimax(move, depth - 1, alpha, beta, True)
             if value <= best_value:
                 best_value = value
                 best_move = move
 
-            if best_value < alpha:
+            if best_value <= alpha:
                 break
             beta = min(beta, best_value)
 

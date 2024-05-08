@@ -264,9 +264,7 @@ class Game:
         return self.get_amount_of_pastures_occupied_by_player() == self.get_amount_of_pastures_occupied_by_computer()
 
     def is_focused(self, pasture: Pasture, pointed_at: bool) -> bool:
-        if self._is_simulation:
-            return False
-        if self._winner is not None:
+        if self._is_simulation or self._winner is not None:
             return False
         if (pasture is self.chosen_pasture or
             pasture.is_targeted or

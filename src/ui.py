@@ -215,9 +215,8 @@ class Ui:
 
     def _update_game_state(self):
         start_time = time.time()
-
         _, next_game_state = minimax(
-            self._game, self._game.get_depth(), ALPHA, BETA)
+            self._game, self._game.get_depth(), ALPHA, BETA, self._game.is_players_turn)
 
         elapsed_time = time.time() - start_time
 
