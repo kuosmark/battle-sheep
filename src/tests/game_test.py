@@ -337,8 +337,6 @@ class TestGame(unittest.TestCase):
         # Tehdään viimeinen siirto
         self.game.click_on_pasture(players_pasture)
         target = players_pasture.get_any_potential_target(self.game.pastures)
-        if not target:
-            raise SystemError('No potential targets found')
         self.game.click_on_pasture(target)
         self.game.press_enter()
         self.assertTrue(self.game.is_over())
@@ -367,8 +365,6 @@ class TestGame(unittest.TestCase):
         # Tehdään viimeinen siirto
         target = computers_pasture.get_any_potential_target(
             self.game.pastures)
-        if not target:
-            raise SystemError('No potential targets found')
         self.game.make_normal_turn(computers_pasture, target, 1)
         self.assertTrue(self.game.is_over())
         self.assertTrue(self.game.is_over_for_computer())
