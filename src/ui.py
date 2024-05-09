@@ -144,7 +144,7 @@ class Ui:
             f'Vuoro: {self._game.get_number_of_turn()}', top_margin)
 
         top_margin = self._render_sidebar_text(
-            f'Vaikeustaso: {COMPUTER_DEPTH, }', top_margin)
+            f'Vaikeustaso: {COMPUTER_DEPTH}', top_margin)
 
         top_margin = self._render_sidebar_text(
             f'Tilanne: {self._latest_game_value}', top_margin)
