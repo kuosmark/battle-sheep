@@ -252,7 +252,7 @@ class Game:
             return ((self.is_in_initial_placement()
                      and pasture.is_potential_initial_pasture(self.pastures))
                     or (self.is_players_turn
-                        and pasture.is_occupied_by_player()))
+                        and pasture.is_possible_to_move(self.pastures)))
         return False
 
     # Siirrot
