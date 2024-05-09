@@ -2,7 +2,7 @@ import math
 
 BOARD_HEIGHT = 4
 BOARD_WIDTH = 8
-DEPTH = 2
+DEPTH = 3
 SIMULATED_PLAYER_DEPTH = 2
 
 # Käyttöliittymä
@@ -23,7 +23,7 @@ INITIAL_POSITION = (50, 50)
 PASTURE_RADIUS = 50
 HALF_RADIUS = PASTURE_RADIUS / 2
 MINIMAL_RADIUS = PASTURE_RADIUS * math.cos(math.radians(30))
-PASTURE_BORDER_WIDTH = 4
+PASTURE_BORDER_WIDTH = 5
 HIGHLIGHT_OFFSET = 60
 
 # Kuusikulmioruudukon suuntavektorit
@@ -39,15 +39,15 @@ DIRECTION_VECTORS = [
 # Värit
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-FREE_PASTURE_COLOR = (163, 178, 3)  # vaalea ruoho
-PLAYERS_PASTURE_COLOR = (7, 83, 141)  # sininen
-COMPUTERS_PASTURE_COLOR = (206, 51, 27)  # punainen
-PASTURE_BORDER_COLOR = (90, 110, 2)  # tummempi ruoho
+FREE_PASTURE_COLOR = (160, 175, 2)  # vaalea ruoho
+PLAYERS_PASTURE_COLOR = (7, 93, 158)  # sininen
+COMPUTERS_PASTURE_COLOR = (200, 49, 26)  # punainen
+PASTURE_BORDER_COLOR = (91, 112, 2)  # tummempi ruoho
 
 # Pelilogiikka
 PLAYER = 0
 COMPUTER = 1
 
 # Algoritmi
-ALPHA = float('-Inf')
-BETA = float('Inf')
+ALPHA = float('-inf')
+BETA = float('inf')

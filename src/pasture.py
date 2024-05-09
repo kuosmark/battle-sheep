@@ -23,9 +23,6 @@ class Pasture:
     def __post_init__(self):
         self.vertices = self._compute_vertices()
 
-    def __eq__(self, other):
-        return self.position == other.position and self.occupier == other.occupier and self.sheep == other.sheep
-
     def _compute_vertices(self) -> List[Tuple[float, float]]:
         """Palauttaa listan laitumen kärjistä koordinaattipareina"""
         x, y = self.position
@@ -64,11 +61,8 @@ class Pasture:
     def get_amount_of_planned_sheep(self) -> int:
         return self.planned_sheep if self.planned_sheep is not None else 0
 
-    def add_a_planned_sheep(self):
-        self.planned_sheep = self.get_amount_of_planned_sheep() + 1
-
-    def subtract_a_planned_sheep(self):
-        self.planned_sheep = self.get_amount_of_planned_sheep() - 1
+    def change_planned_sheep(self, change: int):
+        self.planned_sheep = self.get_amount_of_planned_sheep() + change
 
     def occupy(self, occupier: int, sheep: int) -> None:
         self.occupier = occupier
@@ -106,13 +100,13 @@ class Pasture:
         """Palauttaa kaikki naapurilaitumet"""
         return [pasture for pasture in pastures if self._is_neighbour(pasture)]
 
-    def get_amount_of_neighbours(self, pastures: List[Pasture]) -> int:
+    def _get_amount_of_neighbours(self, pastures: List[Pasture]) -> int:
         """Palauttaa naapurilaitumien määrän"""
         return len(self.get_neighbours(pastures))
 
     def is_on_edge(self, pastures: List[Pasture]) -> bool:
         """Kertoo, onko laidun pelilaudan reunalla (reunalaitumilla on alle 6 naapuria)"""
-        return self.get_amount_of_neighbours(pastures) < 6
+        return self._get_amount_of_neighbours(pastures) < 6
 
     def is_potential_initial_pasture(self, pastures: List[Pasture]) -> bool:
         """Kertoo, onko laidun potentiaalinen aloituslaidun"""
@@ -121,12 +115,12 @@ class Pasture:
     def get_free_neighbours(self, pastures: List[Pasture]) -> List[Pasture]:
         return list(filter(lambda n: n.is_free(), self.get_neighbours(pastures)))
 
-    def get_amount_of_free_neighbours(self, pastures: List[Pasture]) -> int:
+    def _get_amount_of_free_neighbours(self, pastures: List[Pasture]) -> int:
         return len(self.get_free_neighbours(pastures))
 
     def is_surrounded(self, pastures: List[Pasture]) -> bool:
         """Palauttaa, onko laidun ympäröity vallatuilla laitumilla"""
-        return self.get_amount_of_free_neighbours(pastures) == 0
+        return self._get_amount_of_free_neighbours(pastures) == 0
 
     def is_possible_to_move(self, pastures: List[Pasture]) -> bool:
         """Palauttaa, voiko laitumelta siirtää lampaita"""
@@ -138,22 +132,24 @@ class Pasture:
         """Returns True if distance from centre to point is less than horizontal_length"""
         return math.dist(point, self.centre) < MINIMAL_RADIUS
 
-    def _get_pasture_at_direction_and_distance(self, vector, current_distance, pastures) -> Pasture | None:
+    def _get_pasture_at_point(self, vector: Tuple[float, float],
+                              distance: int, pastures: List[Pasture]) -> Pasture | None:
         """Etsii laitumen annetusta suunnasta, annetun etäisyyden päästä."""
-        target_position = (self.centre[0] + vector[0] * current_distance,
-                           self.centre[1] + vector[1] * current_distance)
+        target_position = (self.centre[0] + vector[0] * distance,
+                           self.centre[1] + vector[1] * distance)
 
         for pasture in pastures:
-            if math.isclose(pasture.centre[0], target_position[0], rel_tol=0.05) and math.isclose(
-                    pasture.centre[1], target_position[1], rel_tol=0.05):
+            if (math.isclose(pasture.centre[0], target_position[0], rel_tol=0.05)
+                    and math.isclose(pasture.centre[1], target_position[1], rel_tol=0.05)):
                 return pasture
         return None
 
-    def _get_target_pasture(self, vector: Tuple[float, float], pastures: List[Pasture]) -> Pasture | None:
+    def _get_target_pasture(self, vector: Tuple[float, float],
+                            pastures: List[Pasture]) -> Pasture | None:
         """Etsii viimeisen vapaan laitumen annetusta suunnasta."""
         current_distance = 1
         while True:
-            potential_target = self._get_pasture_at_direction_and_distance(
+            potential_target = self._get_pasture_at_point(
                 vector, current_distance, pastures)
             if potential_target is None or potential_target.is_occupied():
                 # Palauttaa edellisen laitumen, mikäli laidun on vallattu
@@ -161,7 +157,7 @@ class Pasture:
                 if current_distance < 2:
                     # Ei palauteta lähtöruutua, mikäli ei päästy yhtä laidunta kauemmaksi.
                     return None
-                last_valid_pasture = self._get_pasture_at_direction_and_distance(
+                last_valid_pasture = self._get_pasture_at_point(
                     vector, current_distance - 1, pastures)
                 return last_valid_pasture
             current_distance += 1

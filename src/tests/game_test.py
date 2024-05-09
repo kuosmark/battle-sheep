@@ -13,7 +13,7 @@ BOARD_WIDTH = 8
 
 class TestGame(unittest.TestCase):
     def setUp(self) -> None:
-        self.game = Game(BOARD_HEIGHT, BOARD_WIDTH)
+        self.game = Game(BOARD_HEIGHT, BOARD_WIDTH, is_simulation=False)
 
     # Apumetodit
 
@@ -85,7 +85,7 @@ class TestGame(unittest.TestCase):
         self.game.click_on_pasture(choice)
         self.game.click_on_pasture(choice)
         self.assertEqual(choice.get_amount_of_sheep(), self.game.initial_sheep)
-        self.assertTrue(self.game.is_computers_turn())
+        self.assertFalse(self.game.is_players_turn)
 
     def test_omputer_can_make_separate_initial_turn(self):
         players_initial_pasture = self.play_initial_turn()
@@ -118,13 +118,11 @@ class TestGame(unittest.TestCase):
 
     def test_game_is_not_over_before_initial_sheep_are_placed(self):
         self.assertFalse(self.game.is_over())
-        self.assertFalse(self.game.is_over_for_player_in_turn())
         self.assertFalse(self.game.is_over_for_player())
         self.assertFalse(self.game.is_over_for_computer())
 
         self.play_initial_turn()
         self.assertFalse(self.game.is_over())
-        self.assertFalse(self.game.is_over_for_player_in_turn())
         self.assertFalse(self.game.is_over_for_player())
         self.assertFalse(self.game.is_over_for_computer())
 
@@ -229,7 +227,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(initial_pasture.get_amount_of_sheep(),
                          self.game.initial_sheep)
         # Pelaaja aloittaa, joten ensimmäisen vuoron jälkeen on tekoälyn vuoro.
-        self.assertTrue(self.game.is_computers_turn())
+        self.assertFalse(self.game.is_players_turn)
         self.assertEqual(self.game.get_number_of_turn(), 2)
 
         self.game.undo_initial_turn(initial_pasture)
@@ -243,7 +241,7 @@ class TestGame(unittest.TestCase):
         source, target = self.choose_target_pasture()
         self.game.press_enter()
 
-        self.assertTrue(self.game.is_computers_turn())
+        self.assertFalse(self.game.is_players_turn)
         self.assertTrue(source.is_occupied())
         self.assertEqual(source.get_amount_of_sheep(),
                          self.game.initial_sheep - 1)
@@ -266,7 +264,6 @@ class TestGame(unittest.TestCase):
         players_initial_pasture.sheep = 1
 
         self.assertTrue(self.game.is_over_for_player())
-        self.assertTrue(self.game.is_over_for_player_in_turn())
         self.assertFalse(self.game.is_over_for_computer())
         self.assertFalse(self.game.is_over())
 
@@ -281,7 +278,6 @@ class TestGame(unittest.TestCase):
         self.occupy_neighbours(players_initial_pasture, COMPUTER, 2)
 
         self.assertTrue(self.game.is_over_for_player())
-        self.assertTrue(self.game.is_over_for_player_in_turn())
         self.assertFalse(self.game.is_over_for_computer())
         self.assertFalse(self.game.is_over())
 
@@ -295,19 +291,18 @@ class TestGame(unittest.TestCase):
         players_initial_pasture.get_neighbours(self.game.pastures)[0].reset()
 
         self.assertFalse(self.game.is_over_for_player())
-        self.assertFalse(self.game.is_over_for_player_in_turn())
 
     def test_turn_changes_correctly_if_player_can_not_move_anymore(self):
         players_pasture = self.play_initial_turn()
         self.play_initial_turn()
         self.game.next_turn()
-        self.assertTrue(self.game.is_computers_turn())
+        self.assertFalse(self.game.is_players_turn)
         players_pasture.sheep = 1
 
         self.game.next_turn()
-        self.assertTrue(self.game.is_computers_turn())
-        self.assertTrue(self.game.is_next_move_calculated(False))
-        self.assertFalse(self.game.is_input_allowed(False))
+        self.assertFalse(self.game.is_players_turn)
+        self.assertTrue(self.game.is_next_move_calculated())
+        self.assertFalse(self.game.is_input_allowed())
         self.assertFalse(self.game.is_over_for_computer())
         self.assertTrue(self.game.is_over_for_player())
 
@@ -319,40 +314,15 @@ class TestGame(unittest.TestCase):
 
         self.game.next_turn()
         self.assertTrue(self.game.is_players_turn)
-        self.assertTrue(self.game.is_input_allowed(False))
-        self.assertFalse(self.game.is_next_move_calculated(False))
+        self.assertTrue(self.game.is_input_allowed())
+        self.assertFalse(self.game.is_next_move_calculated())
         self.assertFalse(self.game.is_over_for_player())
         self.assertTrue(self.game.is_over_for_computer())
 
-    def test_allow_input_is_calculated_correctly_in_initial_game(self):
-        is_simulation = True
-        self.assertFalse(self.game.is_input_allowed(is_simulation))
-
-        is_simulation = False
-        self.assertTrue(self.game.is_input_allowed(is_simulation))
-
-        self.game.next_turn()
-        self.assertFalse(self.game.is_input_allowed(is_simulation))
-
-    def test_allow_input_is_calculated_correctly_if_game_is_over(self):
-        is_simulation = False
+    def test_variables_are_calculates_correctly_if_game_is_over(self):
         self.win_game_by_player()
-        self.assertFalse(self.game.is_input_allowed(is_simulation))
-
-    def test_is_next_move_calculated_returns_correct_value_in_initial_game(self):
-        is_simulation = True
-        self.assertTrue(self.game.is_next_move_calculated(is_simulation))
-
-        is_simulation = False
-        self.assertFalse(self.game.is_next_move_calculated(is_simulation))
-        self.game.next_turn()
-
-        self.assertTrue(self.game.is_next_move_calculated(is_simulation))
-
-    def test_is_next_move_calculated_returns_correct_value_if_game_is_over(self):
-        is_simulation = False
-        self.win_game_by_player()
-        self.assertFalse(self.game.is_next_move_calculated(is_simulation))
+        self.assertFalse(self.game.is_input_allowed())
+        self.assertFalse(self.game.is_next_move_calculated())
 
     def test_undoing_players_last_move_works_correctly(self):
         players_pasture = self.play_initial_turn()

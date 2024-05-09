@@ -38,8 +38,9 @@ class Ui:
     def __init__(self, is_simulation: bool) -> None:
         pygame.init()
         self.is_running = True
-        self._is_simulation = is_simulation
-        self._game = Game(BOARD_HEIGHT, BOARD_WIDTH)
+        self._game = Game(BOARD_HEIGHT, BOARD_WIDTH, is_simulation)
+        self._latest_game_value: float = 0
+        self._latest_computation_time: float = 0
         self._clock = pygame.time.Clock()
         self._screen = pygame.display.set_mode(DISPLAY_SIZE)
         self._board_font = pygame.font.SysFont(
@@ -141,10 +142,10 @@ class Ui:
             f'Vaikeustaso: {DEPTH}', top_margin)
 
         top_margin = self._render_sidebar_text(
-            f'Tilanne: {self._game.latest_value}', top_margin)
+            f'Tilanne: {self._latest_game_value}', top_margin)
 
         top_margin = self._render_sidebar_text(
-            f'Siirron kesto: {self._game.latest_computation_time:.2f}s', top_margin)
+            f'Siirron kesto: {self._latest_computation_time:.2f}s', top_margin)
 
         if self._game.is_over():
             top_margin = self._render_sidebar_text(
@@ -173,8 +174,7 @@ class Ui:
         if pasture.is_occupied_by_computer():
             color = COMPUTERS_PASTURE_COLOR
 
-        if (not self._is_simulation and
-                self._game.is_focused(pasture, pasture.collide_with_point(mouse))):
+        if self._game.is_focused(pasture, pasture.collide_with_point(mouse)):
             return tuple(x + HIGHLIGHT_OFFSET if x + HIGHLIGHT_OFFSET < 255 else 255 for x in color)
 
         return color
@@ -217,13 +217,13 @@ class Ui:
     # Pelin suoritus
 
     def _update_game_state(self):
-        if self._is_simulation and self._game.is_players_turn:
-            depth = SIMULATED_PLAYER_DEPTH
-        else:
-            depth = DEPTH
-
         start_time = time.time()
-        _, next_game_state = minimax(self._game, depth, ALPHA, BETA)
+
+        depth = (SIMULATED_PLAYER_DEPTH if (self._game.is_simulation and self._game.is_players_turn)
+                 else DEPTH)
+        _, next_game_state = minimax(
+            self._game, depth, ALPHA, BETA, self._game.is_players_turn)
+
         elapsed_time = time.time() - start_time
 
         # Varmistetaan, että siirrossa kestää vähintään sekunti
@@ -234,16 +234,22 @@ class Ui:
             raise SystemError('No next move found')
 
         self._game = next_game_state
-        self._game.latest_value = next_game_state.evaluate_game_state()
-        self._game.latest_computation_time = elapsed_time
+        self._latest_computation_time = elapsed_time
+
+    def _update_latest_game_value(self) -> None:
+        self._latest_game_value = self._game.evaluate_game_state()
 
     def play_game(self) -> None:
-        self._render()
-        if self._game.is_next_move_calculated(self._is_simulation):
+        if self._game.is_next_move_calculated():
             self._update_game_state()
+            self._update_latest_game_value()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self._exit()
-            if self._game.is_input_allowed(self._is_simulation):
+
+            if self._game.is_input_allowed():
                 self._handle_input(event)
+                self._update_latest_game_value()
+
+        self._render()
