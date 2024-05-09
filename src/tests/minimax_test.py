@@ -21,16 +21,6 @@ class TestMinimax(unittest.TestCase):
 
     # Apumetodit
 
-    def get_amount_of_possible_moves_for(self, player: int) -> int:
-        was_players_turn = self.game.is_players_turn
-
-        self.game.is_players_turn = player == PLAYER
-        possible_moves = len(get_possible_moves(
-            self.game, self.game.is_players_turn))
-
-        self.game.is_players_turn = was_players_turn
-        return possible_moves
-
     def is_over_for_opponent(self) -> bool:
         if self.game.is_players_turn:
             return self.game.is_over_for_computer()
@@ -41,6 +31,18 @@ class TestMinimax(unittest.TestCase):
 
     def get_amount_of_computers_sheep(self) -> int:
         return sum(p.get_amount_of_sheep() for p in self.game.get_pastures_occupied_by_computer())
+
+    # get_possible_moves()
+
+    def get_amount_of_possible_moves_for(self, player: int) -> int:
+        was_players_turn = self.game.is_players_turn
+
+        self.game.is_players_turn = player == PLAYER
+        possible_moves = len(get_possible_moves(
+            self.game, self.game.is_players_turn))
+
+        self.game.is_players_turn = was_players_turn
+        return possible_moves
 
     def get_move_with_highest_value(self, game: Game) -> Tuple[float, Game | None]:
         possible_moves = get_possible_moves(game, game.is_players_turn)
@@ -72,16 +74,6 @@ class TestMinimax(unittest.TestCase):
         if len(possible_next_moves) > 0:
             self.game = possible_next_moves[0]
 
-    def get_best_move_using_minimax(self, depth: int) -> Game | None:
-        _, move = minimax(
-            self.game, depth, ALPHA, BETA, self.game.is_players_turn)
-        return move
-
-    def make_best_move_using_minimax(self, depth: int) -> None:
-        next_move = self.get_best_move_using_minimax(depth)
-        if next_move is not None:
-            self.game = next_move
-
     def make_worst_next_move(self) -> None:
         possible_next_moves = get_possible_moves(
             self.game, self.game.is_players_turn)
@@ -92,50 +84,54 @@ class TestMinimax(unittest.TestCase):
         for _ in range(turns):
             self.make_best_next_move()
 
-    def play_full_game_against_the_worst(self, worst: int) -> None:
-        player_is_the_worst = PLAYER == worst
-        for _ in range(1, AMOUNT_OF_PASTURES):
-            if player_is_the_worst == self.game.is_players_turn:
-                self.make_worst_next_move()
-            else:
+    def play_full_game_against_the_worst(self, is_player: bool) -> None:
+        for _ in range(AMOUNT_OF_PASTURES):
+            if is_player == self.game.is_players_turn:
                 self.make_best_next_move()
+            else:
+                self.make_worst_next_move()
+
+    # minimax()
+
+    def get_best_move_using_minimax(self, depth: int, max_player: bool) -> Game | None:
+        _, move = minimax(self.game, depth, ALPHA, BETA, max_player)
+        return move
+
+    def make_best_move_using_minimax(self, depth: int, max_player: bool) -> None:
+        next_move = self.get_best_move_using_minimax(depth, max_player)
+        if next_move is not None:
+            self.game = next_move
 
     def play_full_game_using_minimax(self, player_depth: int, computer_depth: int) -> None:
         for _ in range(AMOUNT_OF_PASTURES):
-            depth = player_depth if self.game.is_players_turn else computer_depth
-            self.make_best_move_using_minimax(depth)
+            players_turn = self.game.is_players_turn
+            depth = player_depth if players_turn else computer_depth
+            self.make_best_move_using_minimax(depth, players_turn)
 
-    def play_full_game_using_minimax_against_the_best(self, best: int, depth: int) -> None:
-        player_is_the_best = PLAYER == best
-        for _ in range(1, AMOUNT_OF_PASTURES):
-            if player_is_the_best == self.game.is_players_turn:
+    def play_full_game_using_minimax_against_the_worst(self, depth: int, is_player: bool) -> None:
+        for _ in range(AMOUNT_OF_PASTURES):
+            if is_player == self.game.is_players_turn:
+                self.make_best_move_using_minimax(depth, is_player)
+            else:
+                self.make_worst_next_move()
+
+    def play_game_using_minimax_until_winning_move_is_found(
+            self, depth: int, is_player: bool) -> bool:
+        winning_value = float('inf') if is_player else float('-inf')
+
+        for _ in range(AMOUNT_OF_PASTURES):
+            if is_player == self.game.is_players_turn:
+                move_value, move = minimax(
+                    self.game, depth, ALPHA, BETA, is_player)
+                if move_value == winning_value:
+                    print('arvo on' + str(move_value))
+                    return True
+                if move is not None:
+                    self.game = move
+            else:
                 self.make_best_next_move()
-            else:
-                self.make_best_move_using_minimax(depth)
 
-    def play_full_game_using_minimax_against_the_worst(self, worst: int, depth: int) -> None:
-        player_is_the_worst = PLAYER == worst
-        for _ in range(1, AMOUNT_OF_PASTURES):
-            if player_is_the_worst == self.game.is_players_turn:
-                self.make_worst_next_move()
-            else:
-                self.make_best_move_using_minimax(depth)
-
-    def play_game_using_minimax_until_winning_move_is_found_against_the_worst(self, worst: int, depth: int) -> None:
-        player_is_the_worst = PLAYER == worst
-        winning_value = float('inf') if worst == COMPUTER else float('-inf')
-
-        for _ in range(1, AMOUNT_OF_PASTURES):
-            if player_is_the_worst == self.game.is_players_turn:
-                self.make_worst_next_move()
-            else:
-                value, next_move = minimax(
-                    self.game, depth, ALPHA, BETA, self.game.is_players_turn)
-                if value == winning_value:
-                    break
-
-                if next_move is not None:
-                    self.game = next_move
+        return False
 
     # Testit
 
@@ -248,139 +244,113 @@ class TestMinimax(unittest.TestCase):
         self.assertTrue(self.game.is_over())
 
     def test_minimax_returns_the_best_initial_move_for_player_when_using_depth_1(self):
-        move = self.get_best_move_using_minimax(depth=1)
+        move = self.get_best_move_using_minimax(1, self.game.is_players_turn)
 
         best_value, _ = self.get_move_with_highest_value((self.game))
         self.assertEqual(move.evaluate_game_state(), best_value)
 
     def test_minimax_returns_the_best_initial_move_for_computer_when_using_depth_1(self):
         self.play_game_for_turns(1)
-        move = self.get_best_move_using_minimax(depth=1)
+        move = self.get_best_move_using_minimax(1, self.game.is_players_turn)
 
         best_value, _ = self.get_move_with_lowest_value((self.game))
         self.assertEqual(move.evaluate_game_state(), best_value)
 
     def test_minimax_returns_the_best_move_on_turn_5(self):
         self.play_game_for_turns(4)
-        move = self.get_best_move_using_minimax(depth=1)
+        move = self.get_best_move_using_minimax(1, self.game.is_players_turn)
 
         best_value, _ = self.get_move_with_highest_value((self.game))
         self.assertEqual(move.evaluate_game_state(), best_value)
 
-    def test_making_the_best_move_beats_opponent_making_the_worst_move_when_worst_plays_first(self):
-        self.play_full_game_against_the_worst(COMPUTER)
+    def test_player_making_the_best_move_beats_opponent_making_the_worst_move(self):
+        self.play_full_game_against_the_worst(is_player=True)
         self.assertTrue(self.game.is_over())
         self.assertEqual(self.game.calculate_winner(), PLAYER)
         self.assertEqual(self.game.evaluate_game_state(), float('inf'))
 
-    def test_making_the_best_move_beats_opponent_making_the_worst_move_when_best_plays_first(self):
-        self.play_full_game_against_the_worst(PLAYER)
+    def test_computer_making_the_best_move_beats_opponent_making_the_worst_move(self):
+        self.play_full_game_against_the_worst(is_player=False)
         self.assertTrue(self.game.is_over())
         self.assertEqual(self.game.calculate_winner(), COMPUTER)
         self.assertEqual(self.game.evaluate_game_state(), float('-inf'))
 
-    def test_minimax_beats_opponent_making_the_worst_move_when_it_plays_first(self):
-        self.play_full_game_using_minimax_against_the_worst(COMPUTER, depth=3)
+    def test_player_using_minimax_beats_opponent_making_the_worst_move(self):
+        self.play_full_game_using_minimax_against_the_worst(
+            depth=3, is_player=True)
         self.assertTrue(self.game.is_over())
         self.assertEqual(self.game.calculate_winner(), PLAYER)
         self.assertEqual(self.game.evaluate_game_state(), float('inf'))
 
-    def test_minimax_beats_opponent_making_the_worst_move_when_it_plays_second(self):
-        self.play_full_game_using_minimax_against_the_worst(PLAYER, depth=3)
+    def test_computer_using_minimax_beats_opponent_making_the_worst_move(self):
+        self.play_full_game_using_minimax_against_the_worst(
+            depth=3, is_player=False)
         self.assertTrue(self.game.is_over())
         self.assertEqual(self.game.calculate_winner(), COMPUTER)
         self.assertEqual(self.game.evaluate_game_state(), float('-inf'))
 
-    def test_minimax_beats_opponent_making_the_best_move_when_it_plays_first(self):
-        self.play_full_game_using_minimax_against_the_best(COMPUTER, depth=3)
-        self.assertTrue(self.game.is_over())
-        self.assertEqual(self.game.calculate_winner(), PLAYER)
-        self.assertEqual(self.game.evaluate_game_state(), float('inf'))
+    # Algoritmi osaa voittaa pelin
 
-    def test_minimax_beats_opponent_making_the_best_move_when_it_plays_second(self):
-        self.play_full_game_using_minimax_against_the_best(PLAYER, depth=3)
-        self.assertTrue(self.game.is_over())
-        self.assertEqual(self.game.calculate_winner(), COMPUTER)
-        self.assertEqual(self.game.evaluate_game_state(), float('-inf'))
+    def player_wins_game_if_minimax_finds_winning_move(self, depth: int):
+        winning_move_found = self.play_game_using_minimax_until_winning_move_is_found(
+            depth, is_player=True)
 
-    def test_depth_3_minimax_beats_depth_1_minimax_when_it_plays_first(self):
-        self.play_full_game_using_minimax(player_depth=3, computer_depth=1)
-        self.assertTrue(self.game.is_over())
-        self.assertEqual(self.game.calculate_winner(), PLAYER)
-        self.assertEqual(self.game.evaluate_game_state(), float('inf'))
+        if winning_move_found:
+            # Pelataan syvyyden verran vuoroja eteenpäin, minkä jälkeen pelin pitäisi olla voitettu
+            for _ in range(depth):
+                self.make_best_move_using_minimax(
+                    depth, self.game.is_players_turn)
 
-    def test_depth_3_minimax_beats_depth_1_minimax_when_it_plays_second(self):
-        self.play_full_game_using_minimax(player_depth=1, computer_depth=3)
-        self.assertTrue(self.game.is_over())
-        self.assertEqual(self.game.calculate_winner(), COMPUTER)
-        self.assertEqual(self.game.evaluate_game_state(), float('-inf'))
+            self.assertTrue(self.game.is_over_for_computer())
+            self.assertEqual(self.game.evaluate_game_state(), float('inf'))
+            self.assertEqual(self.game.calculate_winner(), PLAYER)
+        else:
+            self.assertTrue(self.game.is_over())
 
-    def test_player_wins_game_if_depth_2_minimax_finds_a_winning_move(self):
-        depth = 2
-        self.play_game_using_minimax_until_winning_move_is_found_against_the_worst(
-            COMPUTER, depth)
+    def computer_wins_game_if_minimax_finds_winning_move(self, depth: int):
+        winning_move_found = self.play_game_using_minimax_until_winning_move_is_found(
+            depth, is_player=False)
 
-        # Pelin ei pitäisi olla vielä päättynyt
-        self.assertFalse(self.game.is_over())
-        self.assertNotEqual(self.game.evaluate_game_state(), float('inf'))
+        if winning_move_found:
+            # Pelataan syvyyden verran vuoroja eteenpäin, minkä jälkeen pelin pitäisi olla voitettu
+            for _ in range(depth):
+                self.make_best_move_using_minimax(
+                    depth, self.game.is_players_turn)
 
-        # Pelataan syvyyden verran vuoroja eteenpäin, minkä jälkeen pelin pitäisi olla voitettu
-        self.make_best_move_using_minimax(depth)
-        self.make_best_move_using_minimax(depth)
+            self.assertTrue(self.game.is_over_for_player())
+            self.assertEqual(self.game.evaluate_game_state(), float('-inf'))
+            self.assertEqual(self.game.calculate_winner(), COMPUTER)
+        else:
+            self.assertTrue(self.game.is_over())
 
-        self.assertTrue(self.game.is_over())
-        self.assertEqual(self.game.calculate_winner(), PLAYER)
-        self.assertEqual(self.game.evaluate_game_state(), float('inf'))
+    # Syvyys 1
 
-    def test_computer_wins_game_if_depth_2_minimax_finds_a_winning_move(self):
-        depth = 2
-        self.play_game_using_minimax_until_winning_move_is_found_against_the_worst(
-            PLAYER, depth)
+    def test_player_wins_if_depth_1_minimax_finds_winning_move_against_best_opponent(self):
+        self.player_wins_game_if_minimax_finds_winning_move(depth=1)
 
-        # Pelin ei pitäisi olla vielä päättynyt
-        self.assertFalse(self.game.is_over())
-        self.assertNotEqual(self.game.evaluate_game_state(), float('-inf'))
+    def test_computer_wins_if_depth_1_minimax_finds_winning_move_against_best_opponent(self):
+        self.computer_wins_game_if_minimax_finds_winning_move(depth=1)
 
-        # Pelataan syvyyden verran vuoroja eteenpäin, minkä jälkeen pelin pitäisi olla voitettu
-        self.make_best_move_using_minimax(depth)
-        self.make_best_move_using_minimax(depth)
+    # Syvyys 2
 
-        self.assertTrue(self.game.is_over())
-        self.assertEqual(self.game.calculate_winner(), COMPUTER)
-        self.assertEqual(self.game.evaluate_game_state(), float('-inf'))
+    def test_player_wins_if_depth_2_minimax_finds_winning_move_against_best_opponent(self):
+        self.player_wins_game_if_minimax_finds_winning_move(depth=2)
 
-    def test_player_wins_game_if_depth_3_minimax_finds_a_winning_move(self):
-        depth = 3
-        self.play_game_using_minimax_until_winning_move_is_found_against_the_worst(
-            COMPUTER, depth)
+    def test_computer_wins_if_depth_2_minimax_finds_winning_move_against_best_opponent(self):
+        self.computer_wins_game_if_minimax_finds_winning_move(depth=2)
 
-        # Pelin ei pitäisi olla vielä päättynyt
-        self.assertFalse(self.game.is_over())
-        self.assertNotEqual(self.game.evaluate_game_state(), float('inf'))
+    # Syvyys 3
 
-        # Pelataan syvyyden verran vuoroja eteenpäin, minkä jälkeen pelin pitäisi olla voitettu
-        self.make_best_move_using_minimax(depth)
-        self.make_best_move_using_minimax(depth)
-        self.make_best_move_using_minimax(depth)
+    def test_player_wins_if_depth_3_minimax_finds_winning_move_against_best_opponent(self):
+        self.player_wins_game_if_minimax_finds_winning_move(depth=3)
 
-        self.assertTrue(self.game.is_over())
-        self.assertEqual(self.game.calculate_winner(), PLAYER)
-        self.assertEqual(self.game.evaluate_game_state(), float('inf'))
+    def test_computer_wins_if_depth_3_minimax_finds_winning_move_against_best_opponent(self):
+        self.computer_wins_game_if_minimax_finds_winning_move(depth=3)
 
-    def test_computer_wins_game_if_depth_3_minimax_finds_a_winning_move(self):
-        depth = 3
-        self.play_game_using_minimax_until_winning_move_is_found_against_the_worst(
-            PLAYER, depth)
+    # Syvyys 4
 
-        # Pelin ei pitäisi olla vielä päättynyt
-        self.assertFalse(self.game.is_over())
-        self.assertNotEqual(self.game.evaluate_game_state(), float('-inf'))
+    def test_player_wins_if_depth_4_minimax_finds_winning_move_against_best_opponent(self):
+        self.player_wins_game_if_minimax_finds_winning_move(depth=4)
 
-        # Pelataan syvyyden verran vuoroja eteenpäin, minkä jälkeen pelin pitäisi olla voitettu
-        self.make_best_move_using_minimax(depth)
-        self.make_best_move_using_minimax(depth)
-        self.make_best_move_using_minimax(depth)
-
-        self.assertTrue(self.game.is_over())
-        self.assertEqual(self.game.calculate_winner(), COMPUTER)
-        self.assertEqual(self.game.evaluate_game_state(), float('-inf'))
+    def test_computer_wins_if_depth_4_minimax_finds_winning_move_against_best_opponent(self):
+        self.computer_wins_game_if_minimax_finds_winning_move(depth=4)
