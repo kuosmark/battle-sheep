@@ -8,6 +8,13 @@ from constants import (
 from pasture import Pasture
 
 
+# Code derived from:
+# https://github.com/rbaltrusch/pygame_examples/blob/master/code/hexagonal_tiles/main.py
+# Original Author: Richard Baltrusch
+# License: MIT License. All original licensing terms have been fully preserved.
+# Date accessed: 2024-03-21
+# Methods adapted: init_pastures
+
 def init_pastures(board_height: int, board_width: int) -> List[Pasture]:
     """Luo pelilaudan laitumet"""
     leftmost_pasture = Pasture(INITIAL_POSITION)

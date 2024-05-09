@@ -12,6 +12,13 @@ from constants import (
 )
 
 
+# Code derived from:
+# https://github.com/rbaltrusch/pygame_examples/blob/master/code/hexagonal_tiles/hexagon.py
+# Original Author: Richard Baltrusch
+# License: MIT License. All original licensing terms have been fully preserved.
+# Date accessed: 2024-03-21
+# Methods adapted: centre, collide_with_point, _compute_vertices, _is_neighbour
+
 @dataclass
 class Pasture:
     position: Tuple[float, float]
