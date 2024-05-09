@@ -200,7 +200,7 @@ class TestMinimax(unittest.TestCase):
     def test_turns_are_calculated_correctly(self):
         self.play_game_for_turns(1)
         self.assertTrue(self.game.is_in_initial_placement())
-        self.assertTrue(self.game.is_computers_turn())
+        self.assertFalse(self.game.is_players_turn)
 
         self.play_game_for_turns(1)
         self.assertFalse(self.game.is_in_initial_placement())

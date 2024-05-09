@@ -1,9 +1,7 @@
 from typing import List
 from constants import (
     COMPUTER,
-    DEPTH,
     PLAYER,
-    SIMULATED_PLAYER_DEPTH
 )
 from pasture import Pasture
 from utils import calculate_initial_sheep, init_pastures
@@ -14,23 +12,21 @@ class Game:
         self.pastures: List[Pasture] = init_pastures(board_height, board_width)
         self.initial_sheep: int = calculate_initial_sheep(
             board_height, board_width)
-        self._is_simulation = is_simulation
+        self.is_simulation = is_simulation
         self._turn: int = 1
         self.is_players_turn = True
         self._winner: int | None = None
         self.chosen_pasture: Pasture | None = None
         self.target_pasture: Pasture | None = None
-        self.latest_value: float = 0
-        self.latest_computation_time: float = 0
 
     # Syötteet
 
     def click_on_pasture(self, pasture: Pasture | None) -> None:
-        if self.is_in_initial_placement(
-        ) and pasture and pasture.is_potential_initial_pasture(self.pastures):
+        if (self.is_in_initial_placement()
+            and pasture
+                and pasture.is_potential_initial_pasture(self.pastures)):
             self.make_initial_turn(pasture)
-            self.latest_value = self.evaluate_game_state()
-        elif pasture and self._sheep_can_be_moved_this_turn(pasture):
+        elif pasture and self._can_sheep_be_moved_this_turn(pasture):
             self._choose_pasture(pasture)
         elif pasture and pasture.is_targeted and self.chosen_pasture is not None:
             self._choose_target_pasture(pasture)
@@ -47,7 +43,6 @@ class Game:
         if self._are_pastures_chosen():
             self._move_sheep()
             self.next_turn()
-            self.latest_value = self.evaluate_game_state()
 
     # Vuorot
 
@@ -57,11 +52,8 @@ class Game:
     def is_in_initial_placement(self) -> bool:
         return self._turn <= 2
 
-    def is_computers_turn(self) -> bool:
-        return not self.is_players_turn
-
     def is_input_allowed(self) -> bool:
-        if self._is_simulation:
+        if self.is_simulation:
             return False
         if not self.is_players_turn:
             return False
@@ -69,7 +61,7 @@ class Game:
 
     def is_next_move_calculated(self) -> bool:
         if self.is_players_turn:
-            if self._is_simulation:
+            if self.is_simulation:
                 return not self.is_over_for_player()
             return False
         return not self.is_over_for_computer()
@@ -99,11 +91,6 @@ class Game:
         else:
             self.is_players_turn = not self.is_players_turn
 
-    def get_depth(self) -> int:
-        if self._is_simulation and self.is_players_turn:
-            return SIMULATED_PLAYER_DEPTH
-        return DEPTH
-
     # Muuttujien nollaus
 
     def _remove_planned_sheep(self) -> None:
@@ -120,19 +107,14 @@ class Game:
 
     # Heuristiikka
 
-    def _calculate_player_won(self) -> bool:
-        return self.is_over_for_computer() and self.calculate_winner() == PLAYER
-
-    def _calculate_computer_won(self) -> bool:
-        return self.is_over_for_player() and self.calculate_winner() == COMPUTER
-
     def evaluate_game_state(self) -> float:
-        if self._calculate_player_won():
+        if self.is_over_for_computer() and self.calculate_winner() == PLAYER:
             return float('inf')
-        if self._calculate_computer_won():
+        if self.is_over_for_player() and self.calculate_winner() == COMPUTER:
             return float('-inf')
 
-        return sum(pasture.get_value(self.pastures) for pasture in self.get_potential_sheep_to_move())
+        return sum(
+            pasture.get_value(self.pastures) for pasture in self.get_potential_sheep_to_move())
 
     # Pelin päättyminen
 
@@ -158,15 +140,6 @@ class Game:
         pastures = self.get_pastures_occupied_by_computer()
         return self._are_no_potential_moves(pastures)
 
-    def is_over_for_player_in_turn(self) -> bool:
-        if self.is_in_initial_placement():
-            return False
-        if self._winner is not None:
-            return True
-        if self.is_players_turn:
-            return self.is_over_for_player()
-        return self.is_over_for_computer()
-
     def is_over(self) -> bool:
         if self.is_in_initial_placement():
             return False
@@ -178,32 +151,36 @@ class Game:
             self._winner = self.calculate_winner()
         return is_over
 
-    def _go_through_neighbours(self, pasture: Pasture, all_pastures: List[Pasture], herd_size: int) -> int:
-        largest_herd = herd_size
+    def _go_through_neighbours(self, pasture: Pasture, pastures: List[Pasture], herd: int) -> int:
+        largest_herd = herd
         # Käydään läpi laitumen naapurit
-        for neighbour in pasture.get_neighbours(all_pastures):
+        for neighbour in pasture.get_neighbours(pastures):
             # Poistetaan laidun itse käsiteltynä
             all_pastures_without_self: List[Pasture] = [
-                p for p in all_pastures if p is not pasture]
+                p for p in pastures if p is not pasture]
             # Pidetään kirjaa suurimmasta löytyneestä alueesta
             largest_herd = max(largest_herd, self._go_through_neighbours(
-                neighbour, all_pastures_without_self, herd_size + 1))
+                neighbour, all_pastures_without_self, herd + 1))
 
         return largest_herd
 
-    def _find_largest_herd(self, pastures: List[Pasture]) -> int:
-        """Etsii annettujen laidunten suurimman yhtenäisen alueen"""
+    def get_players_largest_herd(self) -> int:
+        """Etsii pelaajan laidunten suurimman yhtenäisen alueen"""
         largest_herd = 0
+        pastures = self.get_pastures_occupied_by_player()
         for pasture in pastures:
             largest_herd = max(largest_herd,
                                self._go_through_neighbours(pasture, pastures, 1))
         return largest_herd
 
-    def get_players_largest_herd(self) -> int:
-        return self._find_largest_herd(self.get_pastures_occupied_by_player())
-
     def get_computers_largest_herd(self) -> int:
-        return self._find_largest_herd(self.get_pastures_occupied_by_computer())
+        """Etsii tekoälyn laidunten suurimman yhtenäisen alueen"""
+        largest_herd = 0
+        pastures = self.get_pastures_occupied_by_computer()
+        for pasture in pastures:
+            largest_herd = max(largest_herd,
+                               self._go_through_neighbours(pasture, pastures, 1))
+        return largest_herd
 
     def calculate_who_has_largest_herd(self) -> int | None:
         """Palauttaa pelaajan, jolla on suurin yhtenäinen laidunalue"""
@@ -261,19 +238,21 @@ class Game:
         return sum(1 for pasture in self.pastures if pasture.is_on_edge(self.pastures))
 
     def is_equal_amount_of_pastures_occupied(self) -> bool:
-        return self.get_amount_of_pastures_occupied_by_player() == self.get_amount_of_pastures_occupied_by_computer()
+        return (self.get_amount_of_pastures_occupied_by_player()
+                == self.get_amount_of_pastures_occupied_by_computer())
 
     def is_focused(self, pasture: Pasture, pointed_at: bool) -> bool:
-        if self._is_simulation or self._winner is not None:
+        if self.is_simulation or self._winner is not None:
             return False
-        if (pasture is self.chosen_pasture or
-            pasture.is_targeted or
-                pasture.get_amount_of_planned_sheep() > 0):
+        if (pasture is self.chosen_pasture
+            or pasture.is_targeted
+                or pasture.get_amount_of_planned_sheep() > 0):
             return True
         if pointed_at:
-            return (self.is_in_initial_placement() and
-                    pasture.is_potential_initial_pasture(self.pastures)) or (
-                self.is_players_turn and pasture.is_occupied_by_player())
+            return ((self.is_in_initial_placement()
+                     and pasture.is_potential_initial_pasture(self.pastures))
+                    or (self.is_players_turn
+                        and pasture.is_occupied_by_player()))
         return False
 
     # Siirrot
@@ -297,21 +276,25 @@ class Game:
         self.chosen_pasture.planned_sheep = self.chosen_pasture.get_amount_of_sheep() - 1
 
     def get_potential_initial_pastures(self) -> List[Pasture]:
-        return list(filter(lambda pasture: pasture.is_potential_initial_pasture(self.pastures), self.pastures))
+        return list(filter(lambda p: p.is_potential_initial_pasture(self.pastures), self.pastures))
 
     def get_potential_sheep_to_move(self) -> List[Pasture]:
-        return list(filter(lambda pasture: pasture.is_possible_to_move(self.pastures), self.pastures))
+        return list(filter(lambda p: p.is_possible_to_move(self.pastures), self.pastures))
 
-    def _sheep_can_be_moved_this_turn(self, pasture: Pasture) -> bool:
-        return pasture.is_possible_to_move(self.pastures) and self.is_occupied_by_player_in_turn(pasture)
+    def _can_sheep_be_moved_this_turn(self, pasture: Pasture) -> bool:
+        return (pasture.is_possible_to_move(self.pastures)
+                and self.is_occupied_by_player_in_turn(pasture))
 
     def get_potential_sheep_to_move_this_turn(self) -> List[Pasture]:
-        return list(filter(self._sheep_can_be_moved_this_turn, self.pastures))
+        return list(filter(self._can_sheep_be_moved_this_turn, self.pastures))
 
     def _move_sheep(self) -> None:
         """Siirtää suunnitellut lampaat kohdelaitumelle."""
-        if self.chosen_pasture is None or self.target_pasture is None or self.chosen_pasture.occupier is None:
+        if (self.chosen_pasture is None
+            or self.target_pasture is None
+                or self.chosen_pasture.occupier is None):
             raise SystemError('Pastures are missing')
+
         self.chosen_pasture.occupy(
             self.chosen_pasture.occupier, self.chosen_pasture.get_amount_of_planned_sheep())
         self.target_pasture.occupy(
@@ -328,13 +311,13 @@ class Game:
 
     def _add_sheep_to_planned_move(self):
         if self._are_pastures_chosen() and self.chosen_pasture.get_amount_of_planned_sheep() >= 2:
-            self.chosen_pasture.subtract_a_planned_sheep()
-            self.target_pasture.add_a_planned_sheep()
+            self.chosen_pasture.change_planned_sheep(-1)
+            self.target_pasture.change_planned_sheep(1)
 
     def _subtract_sheep_from_planned_move(self):
         if self._are_pastures_chosen() and self.target_pasture.get_amount_of_planned_sheep() >= 2:
-            self.chosen_pasture.add_a_planned_sheep()
-            self.target_pasture.subtract_a_planned_sheep()
+            self.chosen_pasture.change_planned_sheep(1)
+            self.target_pasture.change_planned_sheep(-1)
 
     def make_initial_turn(self, pasture: Pasture) -> None:
         self._place_initial_sheep(pasture)

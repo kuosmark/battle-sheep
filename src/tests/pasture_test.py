@@ -25,14 +25,14 @@ class TestPasture(unittest.TestCase):
         self.assertFalse(self.pasture.is_occupied_by_computer())
 
     def test_planned_sheep_are_added_and_subtracted_correctly(self):
-        self.pasture.add_a_planned_sheep()
+        self.pasture.change_planned_sheep(1)
         self.assertEqual(self.pasture.get_amount_of_planned_sheep(), 1)
-        self.pasture.subtract_a_planned_sheep()
+        self.pasture.change_planned_sheep(-1)
         self.assertEqual(self.pasture.get_amount_of_planned_sheep(), 0)
 
     def test_resetting_pasture_functions_correctly(self):
         self.pasture.occupy(PLAYER, 10)
-        self.pasture.add_a_planned_sheep()
+        self.pasture.change_planned_sheep(1)
         self.pasture.reset()
 
         self.assertTrue(self.pasture.is_free())

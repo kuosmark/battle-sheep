@@ -26,6 +26,7 @@ from constants import (
     SIDEBAR_DIVIDER,
     SIDEBAR_FONT_SIZE,
     SIDEBAR_MARGIN,
+    SIMULATED_PLAYER_DEPTH,
     WHITE
 )
 from game import Game
@@ -38,6 +39,8 @@ class Ui:
         pygame.init()
         self.is_running = True
         self._game = Game(BOARD_HEIGHT, BOARD_WIDTH, is_simulation)
+        self._latest_game_value: float = 0
+        self._latest_computation_time: float = 0
         self._clock = pygame.time.Clock()
         self._screen = pygame.display.set_mode(DISPLAY_SIZE)
         self._board_font = pygame.font.SysFont(
@@ -139,10 +142,10 @@ class Ui:
             f'Vaikeustaso: {DEPTH}', top_margin)
 
         top_margin = self._render_sidebar_text(
-            f'Tilanne: {self._game.latest_value}', top_margin)
+            f'Tilanne: {self._latest_game_value}', top_margin)
 
         top_margin = self._render_sidebar_text(
-            f'Siirron kesto: {self._game.latest_computation_time:.2f}s', top_margin)
+            f'Siirron kesto: {self._latest_computation_time:.2f}s', top_margin)
 
         if self._game.is_over():
             top_margin = self._render_sidebar_text(
@@ -215,8 +218,11 @@ class Ui:
 
     def _update_game_state(self):
         start_time = time.time()
+
+        depth = (SIMULATED_PLAYER_DEPTH if (self._game.is_simulation and self._game.is_players_turn)
+                 else DEPTH)
         _, next_game_state = minimax(
-            self._game, self._game.get_depth(), ALPHA, BETA, self._game.is_players_turn)
+            self._game, depth, ALPHA, BETA, self._game.is_players_turn)
 
         elapsed_time = time.time() - start_time
 
@@ -228,12 +234,15 @@ class Ui:
             raise SystemError('No next move found')
 
         self._game = next_game_state
-        self._game.latest_value = next_game_state.evaluate_game_state()
-        self._game.latest_computation_time = elapsed_time
+        self._latest_computation_time = elapsed_time
+
+    def _update_latest_game_value(self) -> None:
+        self._latest_game_value = self._game.evaluate_game_state()
 
     def play_game(self) -> None:
         if self._game.is_next_move_calculated():
             self._update_game_state()
+            self._update_latest_game_value()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -241,5 +250,6 @@ class Ui:
 
             if self._game.is_input_allowed():
                 self._handle_input(event)
+                self._update_latest_game_value()
 
         self._render()
