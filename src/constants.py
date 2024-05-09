@@ -2,7 +2,7 @@ import math
 
 BOARD_HEIGHT = 4
 BOARD_WIDTH = 8
-DEPTH = 2
+DEPTH = 3
 SIMULATED_PLAYER_DEPTH = 2
 
 # Käyttöliittymä
