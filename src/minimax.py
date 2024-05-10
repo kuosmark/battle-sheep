@@ -4,6 +4,7 @@ from game import Game
 
 
 def get_possible_initial_moves(game: Game) -> List[Game]:
+    """Palauttaa pelitilanteen mahdolliset seuraavat aloitussiirrot"""
     possible_moves: List[Game] = []
     for pasture in game.get_potential_initial_pastures():
         game.make_initial_turn(pasture)
@@ -13,8 +14,9 @@ def get_possible_initial_moves(game: Game) -> List[Game]:
 
 
 def get_possible_regular_moves(game: Game) -> List[Game]:
+    """Palauttaa pelitilanteen mahdolliset seuraavat siirrot"""
     possible_moves: List[Game] = []
-    for pasture in game.get_potential_sheep_to_move_this_turn():
+    for pasture in game.get_potential_pastures_to_choose_this_turn():
         for target_pasture in pasture.get_potential_targets(game.pastures):
             for sheep in range(1, pasture.get_amount_of_sheep()):
                 game.make_normal_turn(pasture, target_pasture, sheep)
@@ -34,6 +36,7 @@ def get_possible_moves(game: Game, max_player: bool) -> List[Game]:
 
 
 def is_unable_to_move(game: Game, max_player: bool) -> bool:
+    """Palauttaa tosi, jos vuorossa oleva pelaaja ei voi tehdä siirtoa"""
     if max_player:
         return game.is_over_for_player()
     return game.is_over_for_computer()
@@ -41,6 +44,7 @@ def is_unable_to_move(game: Game, max_player: bool) -> bool:
 
 def minimax(game: Game, depth: int, alpha: float, beta: float, max_player: bool
             ) -> Tuple[float, Game | None]:
+    """Palauttaa pelitilanteen parhaan seuraavan siirron annetulla laskentasyvyydellä"""
     # Palautetaan pelitilanteen arvo, mikäli päästiin annettuun syvyyteen
     # tai peli on ohi vuorossa olevalta pelaajalta
     if depth == 0 or is_unable_to_move(game, max_player):

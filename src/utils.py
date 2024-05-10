@@ -8,8 +8,15 @@ from constants import (
 from pasture import Pasture
 
 
+# Code derived from:
+# https://github.com/rbaltrusch/pygame_examples/blob/master/code/hexagonal_tiles/main.py
+# Original Author: Richard Baltrusch
+# License: MIT License. All original licensing terms have been fully preserved.
+# Date accessed: 2024-03-21
+# Methods adapted: init_pastures
+
 def init_pastures(board_height: int, board_width: int) -> List[Pasture]:
-    """Luodaan pelilaudan laitumet"""
+    """Luo pelilaudan laitumet"""
     leftmost_pasture = Pasture(INITIAL_POSITION)
     pastures = [leftmost_pasture]
 
@@ -36,6 +43,7 @@ def init_pastures(board_height: int, board_width: int) -> List[Pasture]:
 
 
 def calculate_initial_sheep(board_height: int, board_width: int) -> int:
+    """Laskee aloituslampaiden määrän"""
     amount_of_pastures = board_height * board_width
     if amount_of_pastures % 2 != 0:
         raise ValueError('Invalid board dimensions')

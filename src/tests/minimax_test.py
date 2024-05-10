@@ -32,7 +32,7 @@ class TestMinimax(unittest.TestCase):
     def get_amount_of_computers_sheep(self) -> int:
         return sum(p.get_amount_of_sheep() for p in self.game.get_pastures_occupied_by_computer())
 
-    # get_possible_moves()
+    # Get_possible_moves
 
     def get_amount_of_possible_moves_for(self, player: int) -> int:
         was_players_turn = self.game.is_players_turn
@@ -91,7 +91,7 @@ class TestMinimax(unittest.TestCase):
             else:
                 self.make_worst_next_move()
 
-    # minimax()
+    # Minimax
 
     def get_best_move_using_minimax(self, depth: int, max_player: bool) -> Game | None:
         _, move = minimax(self.game, depth, ALPHA, BETA, max_player)
@@ -354,3 +354,11 @@ class TestMinimax(unittest.TestCase):
 
     def test_computer_wins_if_depth_4_minimax_finds_winning_move_against_best_opponent(self):
         self.computer_wins_game_if_minimax_finds_winning_move(depth=4)
+
+    # Syvyys 5
+
+    def test_player_wins_if_depth_5_minimax_finds_winning_move_against_best_opponent(self):
+        self.player_wins_game_if_minimax_finds_winning_move(depth=5)
+
+    def test_computer_wins_if_depth_5_minimax_finds_winning_move_against_best_opponent(self):
+        self.computer_wins_game_if_minimax_finds_winning_move(depth=5)
