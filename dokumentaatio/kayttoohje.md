@@ -55,7 +55,7 @@ Kun lauta täyttyy, ja pelaajalla ei ole enää laitumia, joista siirtää lampa
 
 Lähtölaidun valitaan painamalla hiiren vasenta painiketta, minkä jälkeen mahdolliset kohdelaitumet valaistaan pelilaudalla. Tämän jälkeen valitaan kohdelaidun. Siirrettävien lampaiden määrä valitaan vierittämällä hiiren rullaa tai käyttämällä nuolinäppäimiä. Siirto vahvistetaan Enter-näppäimellä tai hiiren oikealla painikkeella.
 
-Pelitilanteen tiedot esitetään ruudun oikeassa reunassa. _Vaikeustaso_ tarkoittaa tekoälyvastustajan algoritmin laskentasyvyyttä. _Tilanne_ kertoo pelitilanteen heuristisen arvon ja _siirron kesto_ tietokoneen tekemän viimeisimmän siirron laskenta-ajan.
+Pelitilanteen tiedot esitetään ruudun oikeassa reunassa. _Vaikeustaso_ tarkoittaa tekoälyvastustajan algoritmin laskentasyvyyttä. _Tilanne_ kertoo pelitilanteen heuristisen arvon ja _siirron kesto_ tietokoneen viimeisimmän siirron laskenta-ajan.
 
 ## Pelin muokkaaminen
 
