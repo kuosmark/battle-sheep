@@ -354,3 +354,11 @@ class TestMinimax(unittest.TestCase):
 
     def test_computer_wins_if_depth_4_minimax_finds_winning_move_against_best_opponent(self):
         self.computer_wins_game_if_minimax_finds_winning_move(depth=4)
+
+    # Syvyys 5
+
+    def test_player_wins_if_depth_5_minimax_finds_winning_move_against_best_opponent(self):
+        self.player_wins_game_if_minimax_finds_winning_move(depth=5)
+
+    def test_computer_wins_if_depth_5_minimax_finds_winning_move_against_best_opponent(self):
+        self.computer_wins_game_if_minimax_finds_winning_move(depth=5)
